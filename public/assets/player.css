@@ -1,0 +1,39 @@
+/* .pause { */
+	/* height: 50px; */
+	/* background: url(images/musicbtn.png) no-repeat; */
+	/* display: block; */
+	/* background-position: 0 bottom; */
+/* } */
+ 
+/* .play { */
+	/* height: 50px; */
+	/* background: url(images/musicbtn.png) no-repeat; */
+	/* display: block; */
+/* } */
+
+.sound button{
+	/* display:inline-block; */
+	/* display: inline; */
+	/* float:left; */
+	/* overflow:hidden; */
+	/* text-indent:-9999px; */
+	border:none;
+	cursor:pointer
+}
+
+.jp-play{
+	width:40px;height:40px;
+	background:url(./images/jplayer.blue.monday.png) no-repeat
+}
+
+.jp-play:focus{
+	background:url(./images/jplayer.blue.monday.png) -41px 0 no-repeat
+}
+
+.jp-state-playing.jp-play{
+	background:url(./images/jplayer.blue.monday.png) 0 -42px no-repeat
+}
+
+.jp-state-playing.jp-play:focus{
+	background:url(./images/jplayer.blue.monday.png) -41px -42px no-repeat
+}

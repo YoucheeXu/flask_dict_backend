@@ -1,0 +1,162 @@
+{
+	"DictBases": [
+		{
+			"Id": 0,
+			"Name": "D15000",
+			"Type": "ENG2CHS",
+			"Desc": "15000",
+			"Src": "15000/15000.dict",
+			"Format": "SQLite"
+		},
+		{
+			"Id": 1,
+			"Name": "Google",
+			"Type": "ENG2CHS",
+			"Desc": "Google",
+			"Src": "Google/Google.zip",
+			"Format": "ZIP"
+		},
+		{
+			"Id": 2,
+			"Name": "牛津英语搭配词典",
+			"Type": "ENG2CHS",
+			"Desc": "牛津英语搭配词典",
+			"Src": "牛津英语搭配词典",
+			"Format": "mdx"
+		},
+		{
+			"Id": 3,
+			"Name": "Garner's Modern English Usage 5ed",
+			"Type": "ENG2CHS",
+			"Desc": "Garner's Modern English Usage 5ed",
+			"Cover": "Garner's Modern English Usage 5ed.jpg",
+			"Src": "Garner's Modern English Usage 5ed",
+			"Format": "mdx"
+		},
+		{
+			"Id": 4,
+			"Name": "古汉语常用字字典[第5版]",
+			"Type": "CHS2CHS",
+			"Desc": "古汉语常用字字典[第5版]",
+			"Cover": "古汉语常用字字典[第5版].jpg",
+			"Src": "古汉语常用字字典[第5版]",
+			"Format": "mdx"
+		}
+	],
+	"AudioBases": [
+		{
+			"Id": 1,
+			"Name": "Google us",
+			"Type": "US",
+			"Desc": "US",
+            "Src": "Google/Google-us.zip",
+			"Format": "ZIP"
+		}
+	],
+	"WordDict": {
+		"Name": "Words",
+		"Src": "Words.dict",
+		"Level": [
+			"CET6",
+			"TOEFL"
+		]
+	},
+	"DictBase": 0,
+	"Users": [
+		{
+			"Name": "XYQ",
+			"Target": [
+				"TOEFL",
+				"CET6",
+				"New"
+			],
+			"Progress": "XYQ.progress"
+		}
+	],
+	"Agents": {
+		"bIEAgent": false,
+		"ActiveAgent": "v2rayN",
+		"Info": [
+			{
+				"Name": "XX-Net",
+				"ip": "http://127.0.0.1:8087",
+				"Program": "D:\\Green\\XX-Net\\start.bat"
+			},
+			{
+				"Name": "v2rayN",
+				"ip": "http://127.0.0.1:10809",
+				"Program": "D:\\Green\\v2rayN-Core\\v2rayN.exe"
+			}
+		]
+	},
+	"Miss": {
+		"miss_dict": "miss.txt",
+		"miss_audio": "miss.txt"
+	},
+	"Dictionary":{
+		"common": {
+			"ver": "0.0.1.0"
+		},
+		"AudioBase": 1,
+		"Debug": {
+			"bEnable": false,
+			"file": "Dictionary.log"
+		}
+	},
+	"ReciteWords":{
+		"common": {
+			"ver": "0.0.0.1"
+		},
+		"StudyMode": {
+			"LeastFamiliar": 0,
+			"GroupNum": 10
+		},
+		"TestMode": {
+			"GroupNum": 10,
+			"Times": 4
+		},
+		"General": {
+			"NewLimit": 50,
+			"TotalLimit": 200
+		},
+		"TimeInterval": [
+			{
+				"Interval": 5,
+				"Unit": "m"
+			},
+			{
+				"Interval": 30,
+				"Unit": "m"
+			},
+			{
+				"Interval": 12,
+				"Unit": "h"
+			},
+			{
+				"Interval": 1,
+				"Unit": "d"
+			},
+			{
+				"Interval": 2,
+				"Unit": "d"
+			},
+			{
+				"Interval": 4,
+				"Unit": "d"
+			},
+			{
+				"Interval": 7,
+				"Unit": "d"
+			},
+			{
+				"Interval": 15,
+				"Unit": "d"
+			}
+		],
+		"AudioBase": 1,
+		"Debug": {
+			"bEnable": false,
+			"file": "ReciteWords.log"
+		}
+	}
+}
