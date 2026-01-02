@@ -7,15 +7,15 @@ import logging
 from typing import cast
 # from zipfile import ZIP_DEFLATED, ZIP_STORED
 
-from components.classbases.dictbase import DictBase
+from src.components.classbases.dictbase import DictBase
 
-from components.auidoarchive import AuidoArchive
-from components.gdictbase import GDictBase
-from components.mdictbase import MDictBase
-from components.sdictbase import SDictBase
-from components.worddict import WordDict
+from src.components.auidoarchive import AuidoArchive
+from src.components.gdictbase import GDictBase
+from src.components.mdictbase import MDictBase
+from src.components.sdictbase import SDictBase
+from src.components.worddict import WordDict
 
-from app.app_types import CfgDict
+from src.app.app_types import CfgDict
 
 
 class DictApp:

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 from typing import cast
-from components.classbases.sqlite import SQLite
+from src.components.classbases.sqlite import SQLite
 
 
 class WordDict:
@@ -45,7 +45,7 @@ class WordDict:
         return ""
 
     def _update_item(self, word: str, item: str, val: str | int):
-        sql = f"update Words set {item}={val}"
+        sql = f"update Words set {item}='{val}'"
         sql += f" where Word='{word}'"
         print(sql)
 

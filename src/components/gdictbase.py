@@ -17,8 +17,8 @@ import re
 from zipfile import ZIP_DEFLATED
 from typing import override, Any
 
-from components.classbases.dictbase import DictBase
-from components.classbases.ziparchive import ZipArchive
+from src.components.classbases.dictbase import DictBase
+from src.components.classbases.ziparchive import ZipArchive
 
 
 class GDictBase(DictBase):

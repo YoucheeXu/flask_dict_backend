@@ -4,8 +4,8 @@ import os
 from typing import override
 from zipfile import ZIP_STORED
 
-from components.classbases.dictbase import DictBase
-from components.classbases.ziparchive import ZipArchive
+from src.components.classbases.dictbase import DictBase
+from src.components.classbases.ziparchive import ZipArchive
 
 
 class AuidoArchive(DictBase):

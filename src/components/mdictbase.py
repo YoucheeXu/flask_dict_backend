@@ -7,8 +7,8 @@ import os
 import re
 from typing import override
 
-from components.classbases.dictbase import DictBase
-from components.classbases.mdpackage import MdPackage
+from src.components.classbases.dictbase import DictBase
+from src.components.classbases.mdpackage import MdPackage
 
 # def _unescape_entities(text):
     # """

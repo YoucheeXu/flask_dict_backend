@@ -8,8 +8,8 @@ from flask import request
 from flask.views import MethodView
 
 # from .classbases.dictbase import DictBase
-from app.dictapp import DictApp
-from logit import pv
+from src.app.dictapp import DictApp
+from src.logit import pv
 
 
 class DictApi(MethodView):

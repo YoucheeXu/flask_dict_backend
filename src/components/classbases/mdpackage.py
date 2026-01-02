@@ -26,8 +26,8 @@ except ImportError:
 # except ImportError:
 import xml.etree.ElementTree as ET
 
-from components.classbases.utils.ripemd128 import ripemd128
-from components.classbases.utils.pureSalsa20 import Salsa20
+from src.components.classbases.utils.ripemd128 import ripemd128
+from src.components.classbases.utils.pureSalsa20 import Salsa20
 
 
 class MdPackage:

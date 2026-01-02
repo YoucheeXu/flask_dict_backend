@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import os
 from typing import override, cast
 
-from components.classbases.dictbase import DictBase
-from components.classbases.sqlite import SQLite
+from src.components.classbases.dictbase import DictBase
+from src.components.classbases.sqlite import SQLite
 
 
 class SDictBase(DictBase):

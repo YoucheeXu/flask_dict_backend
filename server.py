@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 from flask import Flask
 
-from dictapi import DictApi
-from fileapi import FileApi
+from src.dictapi import DictApi
+from src.fileapi import FileApi
 
 
 if __name__ == '__main__':
