@@ -9,12 +9,6 @@ from functools import wraps
 from typing import override
 
 
-def fcn_name(fcn):
-    str_list = str(fcn).split()
-    # print(str_list)
-    return str_list[1]
-
-
 def po(*values: object, endstr: str = "\n"):
     f_back = sys._getframe().f_back
     filename = f_back.f_code.co_filename
@@ -28,9 +22,16 @@ def po(*values: object, endstr: str = "\n"):
 # 1 dimision array: ary[i]                  OK
 # 2 dimision array: ary[i, j] ary[i][j]     OK
 # slice
+# FIXME: can't work in flask package
 def pv(p: object, endstr: str = "\n"):
     var_name = ""
-    for line in inspect.getframeinfo(inspect.currentframe().f_back)[3]:
+    currentframe = inspect.currentframe()
+    if currentframe is None:
+        return
+    stack_info = inspect.getframeinfo(currentframe.f_back)[3]
+    if not stack_info:
+        return
+    for line in stack_info:
         if (m := re.search(r'\bpv\s*\((.+)\)', line)):
             var_name = m.group(1).split(", end")[0]
             break

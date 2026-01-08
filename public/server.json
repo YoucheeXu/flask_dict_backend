@@ -5,7 +5,7 @@
 			"Name": "D15000",
 			"Type": "ENG2CHS",
 			"Desc": "15000",
-			"Src": "15000/15000.dict",
+			"Src": "dicts/15000/15000.dict",
 			"Format": "SQLite"
 		},
 		{
@@ -13,7 +13,7 @@
 			"Name": "Google",
 			"Type": "ENG2CHS",
 			"Desc": "Google",
-			"Src": "Google/Google.zip",
+			"Src": "dicts/Google/Google.zip",
 			"Format": "ZIP"
 		},
 		{
@@ -21,7 +21,7 @@
 			"Name": "牛津英语搭配词典",
 			"Type": "ENG2CHS",
 			"Desc": "牛津英语搭配词典",
-			"Src": "牛津英语搭配词典",
+			"Src": "dicts/牛津英语搭配词典",
 			"Format": "mdx"
 		},
 		{
@@ -30,7 +30,7 @@
 			"Type": "ENG2CHS",
 			"Desc": "Garner's Modern English Usage 5ed",
 			"Cover": "Garner's Modern English Usage 5ed.jpg",
-			"Src": "Garner's Modern English Usage 5ed",
+			"Src": "dicts/Garner's Modern English Usage 5ed",
 			"Format": "mdx"
 		},
 		{
@@ -39,7 +39,7 @@
 			"Type": "CHS2CHS",
 			"Desc": "古汉语常用字字典[第5版]",
 			"Cover": "古汉语常用字字典[第5版].jpg",
-			"Src": "古汉语常用字字典[第5版]",
+			"Src": "dicts/古汉语常用字字典[第5版]",
 			"Format": "mdx"
 		}
 	],
@@ -49,13 +49,13 @@
 			"Name": "Google us",
 			"Type": "US",
 			"Desc": "US",
-            "Src": "Google/Google-us.zip",
+            "Src": "audios/Google-us/Google-us.zip",
 			"Format": "ZIP"
 		}
 	],
 	"WordDict": {
 		"Name": "Words",
-		"Src": "Words.dict",
+		"Src": "dicts/Words.dict",
 		"Level": [
 			"CET6",
 			"TOEFL"
@@ -70,7 +70,7 @@
 				"CET6",
 				"New"
 			],
-			"Progress": "XYQ.progress"
+			"Progress": "users/XYQ.progress"
 		}
 	],
 	"Agents": {
@@ -90,22 +90,26 @@
 		]
 	},
 	"Miss": {
-		"miss_dict": "miss.txt",
-		"miss_audio": "miss.txt"
+		"miss_dict": "logs/miss.txt",
+		"miss_audio": "logs/miss.txt"
 	},
 	"Dictionary":{
 		"common": {
 			"ver": "0.0.1.0"
 		},
-		"AudioBase": 1,
+		"AudioBaseId": 1,
 		"Debug": {
-			"bEnable": false,
-			"file": "Dictionary.log"
+			"Enable": false,
+			"File": "logs/Dictionary.log"
 		}
 	},
 	"ReciteWords":{
 		"common": {
 			"ver": "0.0.0.1"
+		},
+		"General": {
+			"NewLimit": 50,
+			"TotalLimit": 200
 		},
 		"StudyMode": {
 			"LeastFamiliar": 0,
@@ -114,10 +118,6 @@
 		"TestMode": {
 			"GroupNum": 10,
 			"Times": 4
-		},
-		"General": {
-			"NewLimit": 50,
-			"TotalLimit": 200
 		},
 		"TimeInterval": [
 			{
@@ -153,10 +153,10 @@
 				"Unit": "d"
 			}
 		],
-		"AudioBase": 1,
+		"AudioBaseId": 1,
 		"Debug": {
-			"bEnable": false,
-			"file": "ReciteWords.log"
+			"Enable": false,
+			"File": "logs/ReciteWords.log"
 		}
 	}
 }

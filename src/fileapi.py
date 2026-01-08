@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-import json
 
-from flask import request, Response, redirect
+from flask import request, Response, redirect, url_for
 from flask.views import MethodView
 
 from src.logit import pv
@@ -25,17 +24,19 @@ class FileApi(MethodView):
         '''
             query
         '''
-        pv(itemspath)
-        pv(itemname)
-        pv(filepath)
+        print(f"itemspath = {itemspath}")
+        print(f"itemname = {itemname}")
+        print(f"filepath = {filepath}")
         if itemname:
             filefile = os.path.join(self._proj_path, itemspath, itemname, "output", filepath)
             pv(os.path.abspath(filefile))
-            redirect_path = f"/public/{itemspath}/{itemname}/output/{filepath}"
+            # redirect_path = f"/public/{itemspath}/{itemname}/output/{filepath}"
+            redirect_path = url_for('static', filename=f"/{itemspath}/{itemname}/output/{filepath}")
         else:
             filefile = os.path.join(self._proj_path, itemspath, filepath)
             pv(os.path.abspath(filefile))
-            redirect_path = f"/public/{itemspath}/{filepath}"
+            # redirect_path = f"/public/{itemspath}/{filepath}"
+            redirect_path = url_for('static', filename=f"/{itemspath}/{filepath}")
 
         # with open(filefile, 'rb') as f:
             # fileas = f.read()

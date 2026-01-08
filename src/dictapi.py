@@ -17,10 +17,15 @@ class DictApi(MethodView):
         RESTful style
     '''
     def __init__(self):
-        exe_path = os.path.dirname(os.path.abspath(__file__))
+        self._proj_path: str = ""
         if getattr(sys, "frozen", False):
             exe_path = os.path.dirname(os.path.abspath(sys.executable))
-        self._proj_path: str = os.path.join(exe_path, "..", "public")
+            self._proj_path = os.path.abspath(exe_path)
+        else:
+            exe_path = os.path.dirname(os.path.abspath(__file__))
+            self._proj_path = os.path.abspath(os.path.join(exe_path, "..", "public"))
+        # pv(self._proj_path)
+        print(f"self._proj_path = {self._proj_path}")
         # self._proj_path: str = proj_path
         cfgfile = os.path.join(self._proj_path, "server.json")
         self._dictapp: DictApp = DictApp(self._proj_path)
