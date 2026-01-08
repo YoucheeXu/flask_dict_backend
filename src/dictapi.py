@@ -22,7 +22,9 @@ class DictApi(MethodView):
             exe_path = os.path.dirname(os.path.abspath(sys.executable))
         self._proj_path: str = os.path.join(exe_path, "..", "public")
         # self._proj_path: str = proj_path
-        self._dictapp: DictApp = DictApp(self._proj_path, "server.json")
+        cfgfile = os.path.join(self._proj_path, "server.json")
+        self._dictapp: DictApp = DictApp(self._proj_path)
+        _ = self._dictapp.read_configure(cfgfile)
         self._dictbase_dict: dict[int, str] = {}
         for key, val in self._dictapp.dictbases.items():
             self._dictbase_dict[key] = val.name

@@ -36,23 +36,52 @@ class AgentDict(TypedDict):
     Info: list[dict[str, str]]
 
 
+class CommonInfo(TypedDict):
+    ver: str
+
+
+class GeneralCfg(TypedDict):
+    NewLimit: int
+    TotalLimit: int
+
+
+class StudyModeCfg(TypedDict):
+    LeastFamiliar: int
+    GroupNum: int
+
+
+class TestModeCfg(TypedDict):
+    GroupNum: int
+    Times: int
+
+
+class TimeIntervalCfg(TypedDict):
+    Interval: int
+    Unit: str
+
+
+class DebugCfg(TypedDict):
+    Enable: bool
+    File: str
+
+
 class DictionaryDict(TypedDict):
     common: dict[str, str]
-    AudioBase: int
-    Debug: dict[str, bool | str]
+    AudioBaseId: int
+    Debug: DebugCfg
 
 
 class ReciteDict(TypedDict):
-    common: dict[str, str]
-    StudyMode: dict[str, int]
-    TestMode: dict[str, int]
-    General: dict[str, int]
-    TimeInterval: list[dict[str, str | int]]
-    AudioBase: int
-    Debug: dict[str, bool | str]
+    common: CommonInfo
+    General: GeneralCfg
+    StudyMode: StudyModeCfg
+    TestMode: TestModeCfg
+    TimeInterval: list[TimeIntervalCfg]
+    AudioBaseId: int
+    Debug: DebugCfg
 
 
-class CfgDict(TypedDict):
+class SvrCfgDict(TypedDict):
     DictBases: list[DictDict]
     AudioBases: list[DictDict]
     WordDict: WordDictDict
@@ -62,3 +91,36 @@ class CfgDict(TypedDict):
     Miss: dict[str, str]
     Dictionary: DictionaryDict
     Recite: ReciteDict
+
+class DictBaseFormat(TypedDict):
+    Type: str
+    comprehension: NotRequired[int]
+    CompressLevel: NotRequired[int]
+
+
+class DictBaseCfg(TypedDict):
+    Name: str
+    File: str
+    Format: DictBaseFormat
+
+
+class UsrCfg(TypedDict):
+    Name: str
+    Target: str
+    Progress: str
+
+
+class UserCfg(TypedDict):
+    LastUser: str
+    Users: list[UsrCfg]
+
+
+class ReciteCfg(TypedDict):
+    Common: CommonInfo
+    General: GeneralCfg
+    StudyMode: StudyModeCfg
+    TestMode: TestModeCfg
+    TimeInterval: list[TimeIntervalCfg]
+    Debug: DebugCfg
+    DictBase: dict[str, DictBaseCfg]
+    User: UserCfg

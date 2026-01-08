@@ -17,17 +17,17 @@ class ZipArchive:
         压缩模式有ZIP_STORED和ZIP_DEFLATED，ZIP_STORED只是存储模式，不会对文件进行压缩，
         这个是默认值，如果你需要对文件进行压缩，必须使用ZIP_DEFLATED模式
     '''
-    def __init__(self, zipsrc: str, compression: int, compresslevel: int):
-        self._zipsrc: str = zipsrc
-        self._compression: int = compression
-        self._compresslevel: int = compresslevel
+    def __init__(self):
+        self._zipsrc: str = ""
+        self._compression: int = 0
+        self._compresslevel: int = 0
 
         self._file_list: list[str] = []
 
-    def open(self) -> tuple[int, str]:
+    def open(self, zipsrc: str) -> tuple[int, str]:
+        self._zipsrc = zipsrc
         try:
-            with ZipFile(self._zipsrc, 'a', self._compression,
-                compresslevel = self._compresslevel) as zipf:
+            with ZipFile(self._zipsrc, 'r') as zipf:
                 self._file_list = zipf.namelist()
         except (BadZipFile, LargeZipFile) as reason:
             return -1, str(reason)
@@ -37,15 +37,13 @@ class ZipArchive:
         return True
 
     def add_file(self, filename: str, data: bytes | str) -> bool:
-        with ZipFile(self._zipsrc, 'a', self._compression,
-            compresslevel = self._compresslevel) as zipf:
+        with ZipFile(self._zipsrc, 'a') as zipf:
             zipf.writestr(filename, data)
         self._file_list.append(filename)
         return True
 
     def read_file(self, filename: str) -> bytes:
-        with ZipFile(self._zipsrc, 'a', self._compression,
-            compresslevel = self._compresslevel) as zipf:
+        with ZipFile(self._zipsrc, 'r') as zipf:
             file_: bytes = zipf.read(filename)
         return file_
 
@@ -63,7 +61,3 @@ class ZipArchive:
 
     def del_file(self, filename: str) -> bool:
         raise NotImplementedError("don't support to delete file: " + filename)
-
-
-if __name__ == '__main__':
-    pass

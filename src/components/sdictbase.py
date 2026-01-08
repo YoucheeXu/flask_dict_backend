@@ -1,9 +1,18 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+from collections.abc import Generator
+from typing import NamedTuple
 from typing import override, cast
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.sqlite import SQLite
+
+
+class WordTuple(NamedTuple):
+    word: str
+    symbol: str
+    meaning: str
+    sentences: str | None
 
 
 class SDictBase(DictBase):
@@ -11,13 +20,15 @@ class SDictBase(DictBase):
     Words: word, symbol, meaning, sentences, level, familiar, lastdate
     Words: word, symbol, meaning, sentences
     '''
-    def __init__(self, dictname: str, dictsrc: str):
-        super().__init__(dictname, dictsrc)
-
+    def __init__(self):
+        super().__init__()
         self._dictbase: SQLite = SQLite()
 
     @override
-    def open(self) -> tuple[int, str]:
+    def open(self, name: str, src: str) -> tuple[int, str]:
+        # self._name = name
+        # self._src = src
+        _ = super().open(name, src)
         return self._dictbase.open(self._src)
 
     @override
@@ -33,7 +44,7 @@ class SDictBase(DictBase):
         # if os.path.isfile(htmlfile):
             # return 1, htmlfile
         query = "select * from Words where word = '" + word + "'"
-        row = cast(list[str], self._dictbase.get(query))
+        row = cast(WordTuple | None, self._dictbase.get(query))
         print(f"{word} = {row}")
         # word = row[0]
         # phonetic = row[1]
@@ -52,16 +63,20 @@ class SDictBase(DictBase):
         # """
         # with open(htmlfile, 'w', encoding="UTF-8") as f:
             # _ = f.write(html)
-        return 1, row
+        if row:
+            return 1, str(row)
+        else:
+            return -1, f"now {word} in {self._name}"
 
     @override
-    def get_wordlist(self, word_list: list[str], word: str, limit: int = 100) -> int:
+    def get_wordlist(self, word: str, limit: int = 100):
+        word_list: list[str] = []
         where = "word like '" + word + "%'"
         query = "select word from Words where " + where + f"Limit {limit}"
-        for row in self._dictbase.each(query):
+        for row in cast(Generator[str, None, None], self._dictbase.each(query)):
             print(f"row = {row}")
             word_list.append(row)
-        return len(word_list)
+        return word_list
 
     @override
     def del_word(self, word: str) -> bool:

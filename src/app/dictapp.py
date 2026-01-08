@@ -15,44 +15,31 @@ from src.components.mdictbase import MDictBase
 from src.components.sdictbase import SDictBase
 from src.components.worddict import WordDict
 
-from src.app.app_types import CfgDict
+from src.app.app_types import SvrCfgDict
 
 
 class DictApp:
-    _dictbase_map: dict[int, DictBase] = {}
-    # _dictbase_list: list[DictBase] = []
-    _audiobase: AuidoArchive | None = None
-    _wordbase: WordDict | None = None
-
-    _missdict_file: str = ""
-    _missaudio_file: str = ""
-
-    _is_cfgmodified: bool = False
-    _cfgfile: str = ""
-
-    _agent_dict: dict[str, dict[str, str]] = {}
-
-    def __init__(self, start_path: str, cfg_file: str):
-        # self.__name = "Dictionary"
+    def __init__(self, start_path: str):
+        self._appname: str = "Dictionary"
         self._start_path: str = os.path.abspath(start_path)
         print(f"dictApp: {self._start_path}")
+
+        self._dictbase_map: dict[int, DictBase] = {}
+        # self._dictbase_list: list[DictBase] = []
+        self._audiobase: AuidoArchive = AuidoArchive()
+        self._wordbase: WordDict = WordDict()
+
+        self._missdict_file: str = ""
+        self._missaudio_file: str = ""
+
+        self._is_cfgmodified: bool = False
+        self._cfgfile: str = ""
+
+        self._agent_dict: dict[str, dict[str, str]] = {}
+
         self._wronghint_file: str = os.path.join(self._start_path, "audios", "WrongHint.mp3")
-
-        self._cfgfile = os.path.join(self._start_path, cfg_file)
-        with open(self._cfgfile, "r", encoding="utf-8") as f:
-            json_data = f.read()
-            self._dict_cfgdict: CfgDict = json.loads(json_data)
-
-        debug_cfg = self._dict_cfgdict["Dictionary"]["Debug"]
-        debug_level = logging.INFO
-        if debug_cfg["bEnable"]:
-            debug_level = logging.DEBUG
-        logfile = os.path.join(self._start_path, "logs", cast(str, debug_cfg["file"]))
-        logfile = os.path.abspath(logfile)
-        print("logfile: " + logfile)
-        self._dict_logger: logging.Logger = self._create_logger("Dictionary", debug_level, logfile)
-        # globalVar.Logger = self.__logger
-        _ = self.read_configure(self._start_path)
+        self._dict_cfgdict: SvrCfgDict = {}
+        self._logger: logging.Logger = logging.getLogger(self._appname)
 
     @property
     def dictbases(self):
@@ -76,20 +63,20 @@ class DictApp:
             case 'ZIP':
                 # compr: int = self.__parse_compr(format_["Compression"])
                 # dictbase_ = GDictBase(name, dictsrc, compr, format_["Compress_Level"])
-                dictbase = GDictBase(name, dictsrc)
+                dictbase = GDictBase()
             case 'SQLite':
-                dictbase = SDictBase(name, dictsrc)
+                dictbase = SDictBase()
             case 'mdx':
-                dictbase = MDictBase(name, dictsrc)
+                dictbase = MDictBase()
             case _:
                 raise NotImplementedError(f"Unknown dict's format: {format}!")
 
-        ret, msg = dictbase.open()
+        ret, msg = dictbase.open(name, dictsrc)
 
         if ret == 1:
-            self._dict_logger.info(f"Success to Open {name}")
+            self._logger.info(f"success to Open {dictsrc}")
         else:
-            self._dict_logger.error(f"fail to Open {name}, due to {msg}")
+            self._logger.error(f"fail to Open {name}, due to {msg}")
 
         return dictbase
 
@@ -110,10 +97,23 @@ class DictApp:
             # case _:
                 # self.__logger.info(msg)
 
-    def read_configure(self, bin_path: str) -> bool:
+    def read_configure(self, cfgfile: str) -> bool:
+        self._cfgfile = cfgfile
+        with open(self._cfgfile, "r", encoding="utf-8") as f:
+            json_data = f.read()
+            self._dict_cfgdict = json.loads(json_data)
+
+        debug_cfg = self._dict_cfgdict["Dictionary"]["Debug"]
+        debug_level = logging.INFO
+        if debug_cfg["Enable"]:
+            debug_level = logging.DEBUG
+        logfile = os.path.join(self._start_path, debug_cfg["File"])
+        logfile = os.path.abspath(logfile)
+        print("logfile: " + logfile)
+        self._config_logger(logfile, debug_level)
 
         common = self._dict_cfgdict["Dictionary"]["common"]
-        self._dict_logger.info(f"Dictionary: v{common["ver"]}")
+        self._logger.info(f"Dictionary: v{common["ver"]}")
 
         agent_cfg = self._dict_cfgdict['Agents']
         # bIEAgent = agent_cfg.bIEAgent
@@ -126,7 +126,7 @@ class DictApp:
         dicts_cfg = self._dict_cfgdict["DictBases"]
         # print(dict_cfg)
         for dict_cfg in dicts_cfg:
-            dict_src = os.path.join(bin_path, "dicts", dict_cfg["Src"])
+            dict_src = os.path.join(self._start_path, dict_cfg["Src"])
             dictbase = self._add_dictbase(dict_cfg["Name"], dict_src, dict_cfg["Format"])
             dictbase.desc = dict_cfg["Desc"]
             if "Cover" in dict_cfg:
@@ -134,43 +134,44 @@ class DictApp:
             self._dictbase_map[dict_cfg["Id"]] = dictbase
 
         audio_cfg = self._dict_cfgdict['AudioBases'][0]
-        audio_src = os.path.join(bin_path, "audios", audio_cfg["Src"])
+        audio_src = os.path.join(self._start_path, audio_cfg["Src"])
         audio_format = audio_cfg['Format']
         if audio_format == 'ZIP':
             # compr = self.__parse_compr(autido_type["Compression"])
             audio_name = audio_cfg["Name"]
             # comprlvl = autido_type["CompressLevel"]
             # self.__audiobase = AuidoArchive(audio_name, dict_src, compr, comprlvl)
-            self._audiobase = AuidoArchive(audio_name, audio_src)
+            self._audiobase = AuidoArchive()
             self._audiobase.desc = audio_cfg["Desc"]
-            ret, msg = self._audiobase.open()
+            ret, msg = self._audiobase.open(audio_name, audio_src)
             if ret != 1:
-                self._dict_logger.error(f"Fail to open {audio_name}, because of {msg}")
+                self._logger.error(f"Fail to open {audio_src}, because of {msg}")
+            else:
+                self._logger.info(f"success to open {audio_src}")
 
             # if "Download" in audio_cfg:
                 # self._audiobase.download = audio_cfg["Download"]
 
         miss_cfg = self._dict_cfgdict["Miss"]
-        self._missdict_file = os.path.join(self._start_path,  "logs", miss_cfg["miss_dict"])
-        self._missaudio_file = os.path.join(self._start_path, "logs", miss_cfg["miss_audio"])
+        self._missdict_file = os.path.join(self._start_path,  miss_cfg["miss_dict"])
+        self._missaudio_file = os.path.join(self._start_path, miss_cfg["miss_audio"])
 
         worddict_cfg = self._dict_cfgdict["WordDict"]
-        audio_src = os.path.join(bin_path, "dicts", worddict_cfg["Src"])
+        worddict_src = os.path.join(self._start_path, worddict_cfg["Src"])
 
-        self._wordbase = WordDict(worddict_cfg["Name"], audio_src)
-        ret, msg = self._wordbase.open()
+        self._wordbase = WordDict()
+        ret, msg = self._wordbase.open(worddict_cfg["Name"], worddict_src)
         if ret != 1:
-            self._wordbase = None
-            self._dict_logger.error(f"Fail to open Words.dict, because of {msg}")
+            self._logger.error(f"Fail to open Words.dict, because of {msg}")
 
        # usrsCfg = JSON.parse(JSON.stringify(self._cfg['Users']))
 
         # defaultUsr = self._cfg.Dictionary.User
 
         # for (usrCfg of usrsCfg):
-        #     # progressFile = os.path.join(bin_path, usrCfg.Progress).replace(/\\/g, '/')
+        #     # progressFile = os.path.join(self._start_path, usrCfg.Progress).replace(/\\/g, '/')
         #     if usrCfg.__name == defaultUsr):
-        #         progressFile = os.path.join(bin_path, usrCfg.Progress)
+        #         progressFile = os.path.join(self._start_path, usrCfg.Progress)
         #         self._usrProgress = UsrProgress()
         #         self._usrProgress.Open(progressFile, "New")
         #         if self._usrProgress.ExistTable("New") == False):
@@ -182,11 +183,8 @@ class DictApp:
 
         return True
 
-    def _create_logger(self, loggername: str, level: int = logging.INFO,
-        logfile: str | None = None) -> logging.Logger:
-
-        logger = logging.getLogger(loggername)
-        logger.setLevel(level)
+    def _config_logger(self, logfile: str = "", level: int = logging.INFO):
+        self._logger.setLevel(level)
 
         if logfile:
             # print(logFile)
@@ -195,23 +193,21 @@ class DictApp:
             fmt = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s: %(message)s'
             fh_formatter = logging.Formatter(fmt=fmt, datefmt = "%H:%M:%S")
             fh.setFormatter(fh_formatter)
-            logger.addHandler(fh)
+            self._logger.addHandler(fh)
 
         ch = logging.StreamHandler(stream = sys.stdout)
         ch.setLevel(level)
         fmt = "%(filename)s[L%(lineno)03d] %(levelname)s: %(message)s"
         ch_formatter = logging.Formatter(fmt=fmt, datefmt = "%H:%M:%S")
         ch.setFormatter(ch_formatter)
-        logger.addHandler(ch)
-
-        return logger
+        self._logger.addHandler(ch)
 
     def _active_agent(self, agent_name: str):
         agent_cfg = self._agent_dict[agent_name]
         # print(agent_cfg)
-        self._dict_logger.info(f"activate agent: {agent_cfg}")
+        self._logger.info(f"activate agent: {agent_cfg}")
 
-    def _record_to_file(self, file_: str, something: str):
+    def _record2file(self, file_: str, something: str):
         with open(file_, "w", encoding="utf-8") as f:
             _ = f.write(something)
 
@@ -225,7 +221,7 @@ class DictApp:
         is_new = False
 
         # dictbase_ = self.__dictbase_map[dictname]
-        self._dict_logger.info(f"query word = {word} in dict = {dictbase_.name}")
+        self._logger.info(f"query word '{word}' in dict '{dictbase_.name}'")
 
         ret_dict, dict_url = dictbase_.query_word(word)
         # print(f"ret_dict: {ret_dict}, dict: {dict}")
@@ -238,12 +234,12 @@ class DictApp:
                 # self.trigger_download(dictbase_, word, dict)
             else:
                 err_msg = f"Dict of {word}: {dictbase_.name} doesn't support to download.\n"
-                self._record_to_file(self._missdict_file, err_msg)
+                self._record2file(self._missdict_file, err_msg)
                 # self.Info(-1, 1, word, err_msg)
             dict_url = f"there is no {word} in {dictbase_.name}."
 
         if ret_dict < 0:
-            self._record_to_file(self._missdict_file, dict_url)
+            self._record2file(self._missdict_file, dict_url)
 
         if ret_dict <= 0:
             dicterr_file = os.path.join(dictbase_.tempdir, word + "-error.html")
@@ -252,11 +248,11 @@ class DictApp:
                 _ = f.write(html)
             dict_url = dicterr_file
         else:
-            # if not self.__usr_progress.has_Word(word):
-            #     ret = self.__usr_progress.insert_word(word);
+            # if not self._usr_progress.has_Word(word):
+            #     ret = self._usr_progress.insert_word(word);
             #     is_new = False
             # else:
-            #     familiar = self.__usr_progress.get_item(word, "Familiar")
+            #     familiar = self._usr_progress.get_item(word, "Familiar")
             #     if familiar < 10:
             #         print(word + " has been marked as new.")
             #         is_new = True
@@ -265,25 +261,27 @@ class DictApp:
             #         is_new = False
             pass
 
+        audioname = self._audiobase.name
         if ret_audio < 0:
-            self._record_to_file(self._missaudio_file,
+            self._record2file(self._missaudio_file,
                 "Audio of " + word + ": " + audio_url + "\n")
+            self._logger.info((f"there is no audio '{audio_url}' of '{word}' in archive "
+                f"'{self._audiobase.name}'"))
         elif ret_audio == 0:
             if self._audiobase.download is not None:
                 print(f"Going to download: {audio_url}")
                 # TODO: download audio
                 # self.trigger_download(self._audiobase, word, audio_url)
             else:
-                audioname = self._audiobase.name
-                self._record_to_file(self._missaudio_file,
-                    f"Audio of {word}: {audioname} doesn't support to download.\n")
-                self._record_to_file(self._missaudio_file, "\n")
+                self._record2file(self._missaudio_file,
+                    f"doesn't support downloading audio '{audio_url}' of '{word}'\n")
+                self._record2file(self._missaudio_file, "\n")
 
         if ret_audio <= 0:
             audio_url = self._wronghint_file
 
         if ret_dict < 0 or ret_audio < 0:
-            self._record_to_file(self._missaudio_file, "\n")
+            self._record2file(self._missaudio_file, "\n")
 
         if ret_audio == 1:
             # self.Info(0, 2, "", "")
@@ -309,17 +307,17 @@ class DictApp:
             ret = dictbase_.close()
 
             if ret:
-                self._dict_logger.info(f"OK to close {srcfile}")
+                self._logger.info(f"OK to close {srcfile}")
             else:
-                self._dict_logger.error(f"Fail to close {srcfile}")
+                self._logger.error(f"Fail to close {srcfile}")
 
         if self._audiobase:
             ret = self._audiobase.close()
             srcfile = self._audiobase.src
             if ret:
-                self._dict_logger.info(f"OK to close {srcfile}")
+                self._logger.info(f"OK to close {srcfile}")
             else:
-                self._dict_logger.error(f"Fail to close {srcfile}")
+                self._logger.error(f"Fail to close {srcfile}")
 
         # if self._usrProgress:
             # ret = self._usrProgress.close()

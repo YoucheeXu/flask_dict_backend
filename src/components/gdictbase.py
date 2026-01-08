@@ -9,12 +9,10 @@ a/able.json in zip
 v2.0 support zip dict
 '''
 import os
-# import shutil
 import json
 from html import unescape
 import codecs
 import re
-from zipfile import ZIP_DEFLATED
 from typing import override, Any
 
 from src.components.classbases.dictbase import DictBase
@@ -23,22 +21,20 @@ from src.components.classbases.ziparchive import ZipArchive
 
 class GDictBase(DictBase):
     # TODO: autodetect zip format
-    def __init__(self, dictname: str, dictsrc: str,
-        compression: int= ZIP_DEFLATED, compresslevel: int = 2):
-        super().__init__(dictname, dictsrc)
-
-        self._dictzip: ZipArchive = ZipArchive(dictsrc, compression, compresslevel)
-
-        filepath, filename = os.path.split(self._src)
-        name, _ = os.path.splitext(filename)
-
-        stylesrc = os.path.join(filepath, name + "-style.zip")
-        self._stylezip: ZipArchive = ZipArchive(stylesrc, compression, compresslevel)
+    def __init__(self):
+        super().__init__()
+        self._dictzip: ZipArchive = ZipArchive()
+        self._stylezip: ZipArchive = ZipArchive()
 
     @override
-    def open(self) -> tuple[int, str]:
-        _ = self._stylezip.open()
+    def open(self, name: str, src: str) -> tuple[int, str]:
+        _ = super().open(name, src)
+        filepath, filename = os.path.split(self._src)
+        name, _ = os.path.splitext(filename)
+        stylesrc = os.path.join(filepath, name + "-style.zip")
+        _ = self._stylezip.open(stylesrc)
 
+        # TODO: change to extract all files automatically
         jsname = "google-toggle.js"
         jsfile = os.path.join(self._tempdir, jsname)
         # print(f"jsfile = {jsfile}")
@@ -49,7 +45,6 @@ class GDictBase(DictBase):
                     # return -1, f"Fail to read {jsname} in {self.__stylezip}"
                 with open(jsfile, "wb") as f:
                     _ = f.write(data)
-
         cssname = "google.css"
         cssfile = os.path.join(self._tempdir, cssname)
         # print(f"cssfile = {cssfile}")
@@ -61,7 +56,7 @@ class GDictBase(DictBase):
                 with open(cssfile, "wb") as f:
                     _ = f.write(data)
 
-        return self._dictzip.open()
+        return self._dictzip.open(self._src)
 
     @override
     def close(self) -> bool:
@@ -345,7 +340,8 @@ class GDictBase(DictBase):
         return -1, f"No file {localfile}"
 
     @override
-    def get_wordlist(self, word_list: list[str], word: str, limit: int = 100) -> int:
+    def get_wordlist(self, word: str, limit: int = 100):
+        word_list: list[str] = []
         # filename = word[0] + "/" + word + ".*\.json"
         pattern = "^" + word + ".*"
         # print("Going to find: " + fileName)
@@ -356,13 +352,9 @@ class GDictBase(DictBase):
             if i > limit:
                 break
 
-        return len(word_list)
+        return word_list
 
     @override
     def del_word(self, word: str) -> bool:
         filename = word[0] + "/" + word + ".json"
         return self._dictzip.del_file(filename)
-
-
-if __name__ == '__main__':
-    pass

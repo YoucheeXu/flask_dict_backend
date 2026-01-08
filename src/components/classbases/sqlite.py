@@ -27,17 +27,17 @@ class SQLite:
             # )
         # })
     # }
-    def open(self, file_: str) -> tuple[int, str]:
-        if not os.path.isfile(file_):
-            return -1, f"{file_} doesn't exit!"
+    def open(self, sqlfile: str) -> tuple[int, str]:
+        if not os.path.isfile(sqlfile):
+            return -1, f"{sqlfile} doesn't exit!"
 
-        self._conn = sqlite3.connect(file_)
+        self._conn = sqlite3.connect(sqlfile)
         if self._conn:
             self._cur = self._conn.cursor()
         else:
-            return -1, f"fail to open {file_}"
+            return -1, f"fail to open {sqlfile}"
 
-        return 1, file_ + "is OK to open!"
+        return 1, sqlfile + "is OK to open!"
 
     # any query: insert/delete/update
     def excute1(self, command: str) -> bool:

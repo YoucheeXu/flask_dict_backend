@@ -117,7 +117,8 @@ class MdPackage:
 
             return 1, record
 
-    def search_record(self, word_list: list[str], pattern: str, limit: int) -> int:
+    def search_record(self, pattern: str, limit: int):
+        word_list: list[str] = []
         regexp = re.compile(pattern)
         i = 0
         for key in self._key_list:
@@ -128,7 +129,7 @@ class MdPackage:
             if i > limit:
                 break
 
-        return len(word_list)
+        return word_list
 
     def check_addrecord(self, word: str, record: str) -> tuple[int, str]:
         raise NotImplementedError(f"Don't support to add record: {word}, {record}")

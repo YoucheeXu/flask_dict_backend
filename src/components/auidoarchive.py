@@ -2,22 +2,29 @@
 # -*- coding: utf-8 -*-
 import os
 from typing import override
-from zipfile import ZIP_STORED
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.ziparchive import ZipArchive
 
 
 class AuidoArchive(DictBase):
-    def __init__(self, audioname: str, audiosrc: str,
-        compression: int= ZIP_STORED, compresslevel: int = 0):
-        super().__init__(audioname, audiosrc)
-
-        self._audiozip: ZipArchive = ZipArchive(audiosrc, compression, compresslevel)
+    def __init__(self):
+        super().__init__()
+        self._name: str = ""
+        self._src: str = ""
+        self._tempdir: str = ""
+        self._compression: int = 0
+        self._compresslevel: int = 0
+        self._download: dict[str, str] | None = None
+        self._audiozip: ZipArchive = ZipArchive()
 
     @override
-    def open(self) -> tuple[int, str]:
-        return self._audiozip.open()
+    def open(self, name: str, src: str) -> tuple[int, str]:
+        # self._name = name
+        # self._src = src
+        # self._init_dict(self._src)
+        _ = super().open(name, src)
+        return self._audiozip.open(self._src)
 
     @override
     def close(self) -> bool:
@@ -59,14 +66,10 @@ class AuidoArchive(DictBase):
             return -1, f"Fail to add {word} to {self._name}"
 
     @override
-    def get_wordlist(self, word_list: list[str], word: str, limit: int = 100) -> int:
-        return 0
+    def get_wordlist(self, word: str, limit: int = 100) -> list[str]:
+        return []
 
     @override
     def del_word(self, word: str) -> bool:
         filename = word[0] + "/" + word + ".mp3"
         return self._audiozip.del_file(filename)
-
-
-if __name__ == '__main__':
-    pass

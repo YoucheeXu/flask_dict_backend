@@ -22,12 +22,15 @@ from src.components.classbases.mdpackage import MdPackage
 
 
 class MDictBase(DictBase):
-    def __init__(self, name: str, dictpath: str, password: tuple[bytes, str] | None = None):
-        super().__init__(name, dictpath)
-        self._dictpath: str = dictpath
-        self._password: tuple[bytes, str] | None = password
+    def __init__(self, password: tuple[bytes, str] | None = None):
+        super().__init__()
+        self._password: tuple[bytes, str] | None = None
         self._mdd_list: list[MdPackage] = []
-        with os.scandir(dictpath) as entries:
+
+    @override
+    def open(self, name: str, src: str) -> tuple[int, str]:
+        _ = super().open(name, src)
+        with os.scandir(self._src) as entries:
             for entry in entries:
                 if entry.is_file():
                     # print(f'File: {entry.path}')
@@ -37,10 +40,6 @@ class MDictBase(DictBase):
                     elif file_extension == ".mdd":
                        mdd = MdPackage(entry.path, True, "UTF-16", self._password)
                        self._mdd_list.append(mdd)
-        return
-
-    @override
-    def open(self) -> tuple[int, str]:
         self._mdx.open()
         for mdd in self._mdd_list:
             mdd.open()
@@ -82,11 +81,9 @@ class MDictBase(DictBase):
         return -1, f"{word} isn't in {self._name}"
 
     @override
-    def get_wordlist(self, word_list: list[str], word: str, limit: int = 100) -> int:
+    def get_wordlist(self, word: str, limit: int = 100):
         pattern = "^" + word + ".*"
-        _ = self._mdx.search_record(word_list, pattern, limit)
-
-        return len(word_list)
+        return self._mdx.search_record(pattern, limit)
 
     @override
     def check_addword(self, localfile: str) -> tuple[int, str]:
