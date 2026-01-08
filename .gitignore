@@ -8,6 +8,7 @@ wheels/
 public/logs
 public/audios
 public/dicts
+public/users
 
 # Virtual environments
 .venv
