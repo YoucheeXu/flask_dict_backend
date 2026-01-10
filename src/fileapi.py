@@ -1,42 +1,44 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys
-import os
-
 from flask import request, Response, redirect, url_for
 from flask.views import MethodView
 
-from src.logit import pv
+from src.logit import pv, po, pe
 
 
 class FileApi(MethodView):
-    '''
-        RESTful style
-    '''
-    def __init__(self):
-        # self._proj_path: str = proj_path
-        exe_path = os.path.dirname(os.path.abspath(__file__))
-        if getattr(sys, "frozen", False):
-            exe_path = os.path.dirname(os.path.abspath(sys.executable))
-        self._proj_path: str = os.path.join(exe_path, "..", "public")
+    """ RESTful style
 
-    def get(self, itemspath: str, itemname: str = "", filepath: str = ""):
-        '''
-            query
-        '''
+    """
+    def __init__(self):
+        pass
+
+    def get(self, itemspath: str, itemname: str = "", filename: str = ""):
+        """ query
+
+        Args:
+            itemspath (str): _description_
+            itemname (str, optional): _description_. Defaults to "".
+            filename (str, optional): _description_. Defaults to "".
+
+        Returns:
+            _type_: _description_
+        """
         print(f"itemspath = {itemspath}")
         print(f"itemname = {itemname}")
-        print(f"filepath = {filepath}")
+        print(f"filename = {filename}")
         if itemname:
-            filefile = os.path.join(self._proj_path, itemspath, itemname, "output", filepath)
-            pv(os.path.abspath(filefile))
-            # redirect_path = f"/public/{itemspath}/{itemname}/output/{filepath}"
-            redirect_path = url_for('static', filename=f"/{itemspath}/{itemname}/output/{filepath}")
+            # filefile = os.path.abspath(os.path.join(self._proj_path, itemspath, itemname, "output", filename))
+            # redirect_path = f"/public/{itemspath}/{itemname}/output/{filename}"
+            redirect_path = url_for('static', filename=f"/{itemspath}/{itemname}/output/{filename}")
         else:
-            filefile = os.path.join(self._proj_path, itemspath, filepath)
-            pv(os.path.abspath(filefile))
-            # redirect_path = f"/public/{itemspath}/{filepath}"
-            redirect_path = url_for('static', filename=f"/{itemspath}/{filepath}")
+            # filefile = os.path.abspath(os.path.join(self._proj_path, itemspath, filename))
+            # redirect_path = f"/public/{itemspath}/{filename}"
+            redirect_path = url_for('static', filename=f"/{itemspath}/{filename}")
+        
+        # print(f'filefile = {filefile}')
+        pv(redirect_path)
+        print(f'redirect_path = {redirect_path}')
 
         # with open(filefile, 'rb') as f:
             # fileas = f.read()
@@ -83,7 +85,3 @@ class FileApi(MethodView):
             partly update
         '''
         pass
-
-    def _convert2relativepath(self, abs_path: str):
-        relative_path = os.path.relpath(abs_path, self._proj_path)
-        return relative_path
