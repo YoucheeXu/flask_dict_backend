@@ -4,18 +4,19 @@ import os
 import sys
 import json
 import logging
-from typing import cast
+from functools import partial
+from typing import cast, Unpack
 # from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from src.components.classbases.dictbase import DictBase
-
 from src.components.auidoarchive import AuidoArchive
 from src.components.gdictbase import GDictBase
 from src.components.mdictbase import MDictBase
 from src.components.sdictbase import SDictBase
 from src.components.worddict import WordDict
-
 from src.app.app_types import SvrCfgDict
+from src.utilities.download_queue import TaskStatus, DownloadCallbackKwargs
+from src.utilities.download_queue import DownloadCallback, DownloadQueue
 
 
 class DictApp:
@@ -39,6 +40,7 @@ class DictApp:
 
         self._wronghint_file: str = os.path.join(self._start_path, "audios", "WrongHint.mp3")
         self._dict_cfgdict: SvrCfgDict = {}
+        self._download_queue: DownloadQueue = DownloadQueue()
         self._logger: logging.Logger = logging.getLogger(self._appname)
 
     @property
@@ -230,8 +232,14 @@ class DictApp:
         if ret_dict == 0:
             if dictbase_.download is not None:
                 print(f"Going to download: {dict_url}")
-                # TODO: download dict
-                # self.trigger_download(dictbase_, word, dict)
+                dict_url = dictbase_.download["URL"].format(word)
+                save_path = dictbase_.download["SavePath"].format(word)
+                callback = cast(DownloadCallback,
+                    partial(self._download_callback, dictbase_, f"word '{word}'"))
+                _ = self._download_queue.add_task(
+                    url=dict_url,
+                    save_path=save_path,
+                    task_callback=callback)
             else:
                 err_msg = f"Dict of {word}: {dictbase_.name} doesn't support to download.\n"
                 self._record2file(self._missdict_file, err_msg)
@@ -296,11 +304,23 @@ class DictApp:
 
         return dict_url, audio_url, is_new, level, stars
 
+    def _download_callback(self, db: DictBase, msg: str,
+            **kwargs: Unpack[DownloadCallbackKwargs]):
+        status = kwargs['status']
+        print(f"{msg} download: {status.name}")
+        if status == TaskStatus.SUCCEEDED:
+            save_path = kwargs['save_path']
+            ret, msg = db.check_addword(save_path)
+            print(f"{'fail' if ret <=0 else 'success'}: {msg}")
+            os.remove(save_path)
+
     def _save_configure(self):
         with open(self._cfgfile, "w", encoding='utf-8') as f:
             _ = f.write(json.dumps(self._dict_cfgdict, ensure_ascii=False))
 
     def close(self):
+        self._download_queue.wait_for_completion()
+
         for _, dictbase_ in self._dictbase_map.items():
             srcfile = dictbase_.src
             print("Start to close " + srcfile)
@@ -323,9 +343,9 @@ class DictApp:
             # ret = self._usrProgress.close()
             # srcfile = self._usrProgress.src
             # if ret:
-                # self.__logger.info(f"OK to close {srcfile} {msg}")
+                # self._logger.info(f"OK to close {srcfile} {msg}")
             # else:
-                # self.__logger.error(f"Fail to close {srcfile}")
+                # self._logger.error(f"Fail to close {srcfile}")
 
         if self._is_cfgmodified:
             self._save_configure()

@@ -7,9 +7,13 @@ import time
 import json
 from typing import TypedDict, cast
 
+class DownloadCfgDict(TypedDict):
+    Mode: str
+    URL: str
+    SavePath: str
 
 class DictCfgDict(TypedDict):
-    Download: dict[str, str]
+    Download: DownloadCfgDict
 
 
 class DictBase(abc.ABC):
@@ -19,7 +23,7 @@ class DictBase(abc.ABC):
         self._desc: str = ""
         self._cover: str = ""
         self._tempir: str = ""
-        self._download: dict[str, str] | None = None
+        self._download: DownloadCfgDict | None = None
 
     def _init_dict(self, src: str):
         if not os.path.isdir(src):
@@ -75,11 +79,11 @@ class DictBase(abc.ABC):
         return self._tempdir
 
     @property
-    def download(self) -> dict[str, str] | None:
+    def download(self):
         return self._download
 
     @download.setter
-    def download(self, dwnld: dict[str, str]):
+    def download(self, dwnld: DownloadCfgDict):
         self._download = dwnld
 
     @abc.abstractmethod

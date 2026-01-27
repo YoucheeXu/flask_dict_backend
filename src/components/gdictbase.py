@@ -1,12 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-'''
-v2.2 delete audio part
-
-v2.1
-a/able.json in zip
-
-v2.0 support zip dict
+''' Dictbase for google
 '''
 import os
 import json
@@ -55,6 +49,9 @@ class GDictBase(DictBase):
                     # return -1, f"Fail to read {cssname} in {self.__stylezip}"
                 with open(cssfile, "wb") as f:
                     _ = f.write(data)
+
+        if self._download is not None:
+            self._download["SavePath"] = os.path.join(self._tempdir, "{}.json")
 
         return self._dictzip.open(self._src)
 
@@ -327,12 +324,12 @@ class GDictBase(DictBase):
                 dictjson = f.read()
                 inword = self._get_inword(dictjson)
 
-                os.remove(localfile)
+                # os.remove(localfile)
 
                 if inword != "":
                     if inword == word:
                         _ = self._dictzip.add_file(filename, dictjson)
-                        return 1, f"OK to add  {word} to {self._name}"
+                        return 1, f"OK to add '{word}' to {self._name}"
                     return 0, inword
 
                 return -1, f"No valid data in {localfile}"
