@@ -69,7 +69,7 @@ class GDictBase(DictBase):
         dictjson = ""
         msg = ""
         # filename = os.path.join(word[0], word + ".json")
-        filename = word[0] + "/" + word + ".json"
+        filename = word[0].lower() + "/" + word + ".json"
         if self._dictzip.has_file(filename):
             dictjson = str(self._dictzip.read_file(filename),'utf-8')
         elif self._download is not None:
@@ -318,7 +318,7 @@ class GDictBase(DictBase):
     def check_addword(self, localfile: str) -> tuple[int, str]:
         basename = os.path.basename(localfile)
         word, _ = os.path.splitext(basename)
-        filename = word[0] + "/" + word + ".json"
+        filename = word[0].lower() + "/" + word + ".json"
         if os.path.isfile(localfile):
             with open(localfile, "r", encoding="utf-8") as f:
                 dictjson = f.read()
@@ -330,7 +330,7 @@ class GDictBase(DictBase):
                     if inword == word:
                         _ = self._dictzip.add_file(filename, dictjson)
                         return 1, f"OK to add '{word}' to {self._name}"
-                    return 0, inword
+                    return 0, f"expected word: {word}, inword: {inword}"
 
                 return -1, f"No valid data in {localfile}"
 

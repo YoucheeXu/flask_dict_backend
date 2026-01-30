@@ -37,7 +37,7 @@ class AuidoArchive(DictBase):
         if os.path.isfile(audiofile):
             return 1, audiofile
 
-        filename = word[0] + "/" + word + ".mp3"
+        filename = word[0].lower() + "/" + word + ".mp3"
         if self._audiozip.has_file(filename):
             audio = self._audiozip.read_file(filename)
             if audio:
@@ -56,14 +56,14 @@ class AuidoArchive(DictBase):
     def check_addword(self, localfile: str) -> tuple[int, str]:
         basename = os.path.basename(localfile)
         word, _ = os.path.splitext(basename)
-        filename = word[0] + "/" + word + ".mp3"
+        filename = word[0].lower() + "/" + word + ".mp3"
         if os.path.isfile(localfile):
             with open(localfile, "rb") as f:
                 wordmp3 = f.read()
                 _ = self._audiozip.add_file(filename, wordmp3)
-                return 1, f"OK to add  {word} to {self._name}"
+                return 1, f"OK to add '{word}' to {self._name}"
         else:
-            return -1, f"Fail to add {word} to {self._name}"
+            return -1, f"Fail to add '{word}' to {self._name}"
 
     @override
     def get_wordlist(self, word: str, limit: int = 100) -> list[str]:
