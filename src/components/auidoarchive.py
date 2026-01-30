@@ -15,7 +15,7 @@ class AuidoArchive(DictBase):
         self._tempdir: str = ""
         self._compression: int = 0
         self._compresslevel: int = 0
-        self._download: dict[str, str] | None = None
+        # self._download: dict[str, str] | None = None
         self._audiozip: ZipArchive = ZipArchive()
 
     @override
