@@ -31,7 +31,7 @@ class DictApi(MethodView):
         print(f"dict_id = {dict_id}, word = {word}")
         # query all dicts info, /dicts
         if dict_id is None:
-            dict_list = []
+            dict_list: list[dict[str, int | str]] = []
             for key, val in self._dictbase_dict.items():
                 dict_list.append({"id": key, "title": val})
             dicts_json = json.dumps(dict_list, ensure_ascii=False, indent=2) 
