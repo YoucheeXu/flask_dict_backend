@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys
 import os
 import json
+from typing import cast
 
-from flask import request
+from flask import request, current_app
 from flask.views import MethodView
 
 # from .classbases.dictbase import DictBase
-from src.app.dictapp import DictApp
 from src.logit import pv
+from src.app.dictapp import DictApp
+from src.app_factory import get_dict_app
 
 
 class DictApi(MethodView):
@@ -17,19 +18,9 @@ class DictApi(MethodView):
         RESTful style
     '''
     def __init__(self):
-        self._proj_path: str = ""
-        if getattr(sys, "frozen", False):
-            exe_path = os.path.dirname(os.path.abspath(sys.executable))
-            self._proj_path = os.path.abspath(exe_path)
-        else:
-            exe_path = os.path.dirname(os.path.abspath(__file__))
-            self._proj_path = os.path.abspath(os.path.join(exe_path, "..", "public"))
-        # pv(self._proj_path)
+        self._proj_path: str = cast(str, current_app.static_folder)
         print(f"self._proj_path = {self._proj_path}")
-        # self._proj_path: str = proj_path
-        cfgfile = os.path.join(self._proj_path, "server.json")
-        self._dictapp: DictApp = DictApp(self._proj_path)
-        _ = self._dictapp.read_configure(cfgfile)
+        self._dictapp: DictApp = get_dict_app(self._proj_path)
         self._dictbase_dict: dict[int, str] = {}
         for key, val in self._dictapp.dictbases.items():
             self._dictbase_dict[key] = val.name
