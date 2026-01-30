@@ -40,19 +40,42 @@ def create_server():
 
     dict_view = DictApi.as_view('dict_api')
     app.add_url_rule('/dicts/', view_func=dict_view,
-        defaults={'dict_id': None, 'word': None})
+        defaults={'dict_id': None, 'word': None},
+        methods=['GET'],
+    )
     app.add_url_rule('/dicts/<int:dict_id>/', view_func=dict_view,
-        defaults={'word': None})
-    app.add_url_rule('/dicts/<int:dict_id>/<string:word>/', view_func=dict_view)
+        defaults={'word': None},
+        methods=['GET'],
+    )
+    app.add_url_rule('/dicts/<int:dict_id>/<string:word>/', view_func=dict_view,
+        methods=['GET'],
+    )
+
+    # Maximum allowed upload file size: 100MB
+    app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
+    # Allowed file extensions for security control
+    app.config['UPLOAD_EXTENSIONS'] = ['.json', '.mp3']
 
     file_view = FileApi.as_view("file_api")
-    app.add_url_rule('/<string:itemspath>/<string:itemname>/output/<string:filename>', view_func=file_view)
+    # dicts/Google/output/able.html
+    # audios/Google-us/output/able.mp3
+    app.add_url_rule(
+        '/<string:itemspath>/<string:itemname>/output/<string:filename>',
+        view_func=file_view,
+        methods=['GET']
+    )
     app.add_url_rule('/<string:itemspath>/<string:filename>', view_func=file_view)
     # app.add_url_rule(
         # '/<path:itemspath>',  # 捕获任意层级路径（适配你的参数结构）
         # view_func=file_view
     # )
-
+    # dicts/1/upload/fire.json
+    # audios/1/upload/fire.mp3
+    app.add_url_rule(
+        '/<string:itempath>/<int:itemnum>/upload/<string:filename>',
+        view_func=file_view,
+        methods=['POST']
+    )
     # app.url_map.strict_slashes = False
 
     app.run(host='0.0.0.0', debug=True) 

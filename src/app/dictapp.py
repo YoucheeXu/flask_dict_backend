@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import sys
+from pathlib import Path
 import json
 import logging
 from functools import partial
@@ -295,12 +296,11 @@ class DictApp:
             # self.Info(0, 2, "", "")
             pass
 
-        if self._wordbase is not None:
-            level = self._wordbase.get_level(word)
-            stars = self._wordbase.get_star(word)
-        else:
-            level = ""
-            stars = 0
+        level = ""
+        stars = 0
+        # if self._wordbase is not None:
+            # level = self._wordbase.get_level(word)
+            # stars = self._wordbase.get_star(word)
 
         return dict_url, audio_url, is_new, level, stars
 
@@ -313,6 +313,25 @@ class DictApp:
             ret, msg = db.check_addword(save_path)
             print(f"{'fail' if ret <=0 else 'success'}: {msg}")
             os.remove(save_path)
+
+    def add_file(self, which: str, num: int, localfile: str):
+        ret = -1
+        msg = f"{localfile} is no file"
+        try:
+            filepath = Path(localfile)
+            if filepath.is_file():
+                filepathstr = str(filepath)
+                suffix = filepath.suffix
+                if suffix == ".mp3" and which == "audios":
+                    ret, msg = self._audiobase.check_addword(filepathstr)
+                elif suffix == ".json" and which == "dicts":
+                    ret, msg = self._dictbase_map[num].check_addword(filepathstr)
+                else:
+                    msg = f"unsupport file {which}/{num}/{localfile}"
+                print(f"add {filepathstr}, ret = {ret}, msg: {msg}")
+        except Exception as e:
+            msg = str(e)
+        return ret, msg
 
     def _save_configure(self):
         with open(self._cfgfile, "w", encoding='utf-8') as f:
