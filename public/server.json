@@ -61,15 +61,10 @@
 			"TOEFL"
 		]
 	},
-	"DictBase": 0,
 	"Users": [
 		{
 			"Name": "XYQ",
-			"Target": [
-				"TOEFL",
-				"CET6",
-				"New"
-			],
+			"Target": "IELTS,
 			"Progress": "users/XYQ.progress"
 		}
 	],
@@ -154,9 +149,11 @@
 			}
 		],
 		"AudioBaseId": 1,
+		"DictBaseId": 1,
 		"Debug": {
 			"Enable": false,
 			"File": "logs/ReciteWords.log"
-		}
+		},
+		"LastUser": "XYQ"
 	}
 }

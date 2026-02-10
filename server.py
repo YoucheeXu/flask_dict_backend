@@ -7,6 +7,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from src.dictapi import DictApi
+from src.reciteapi import ReciteApi
 from src.fileapi import FileApi
 
 
@@ -77,6 +78,16 @@ def create_server():
         methods=['POST']
     )
     # app.url_map.strict_slashes = False
+
+    # for recite
+    recite_view = ReciteApi.as_view('recite_api')
+    app.add_url_rule('/recite/<string:action>/<string:para>/', view_func=recite_view,
+        methods=['GET'],
+    )
+    app.add_url_rule('/recite/<string:action>/', view_func=recite_view,
+        defaults={'para': None},
+        methods=['GET'],
+    )
 
     app.run(host='0.0.0.0', debug=True) 
 
