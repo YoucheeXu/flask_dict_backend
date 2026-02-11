@@ -89,7 +89,7 @@ def create_server():
         methods=['GET'],
     )
 
-    app.run(host='0.0.0.0', debug=True) 
+    app.run(host='0.0.0.0', debug=True,threaded=False) 
 
 
 if __name__ == '__main__':
