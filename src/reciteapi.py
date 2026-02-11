@@ -21,7 +21,7 @@ class ReciteApi(MethodView):
         print(f"self._proj_path = {self._proj_path}")
         self._app: DictApp = get_dict_app(self._proj_path)
 
-    def get(self, action: str, para: str | None) -> tuple[Response, int]:
+    def get(self, action: str, para: str | None):
         """ _summary_
 
         Args:
@@ -136,8 +136,13 @@ class ReciteApi(MethodView):
                 code = 400
                 msg = f"don't support to action {action} with level {para}"
 
-        return jsonify({
+        # return jsonify({
+            # 'code': code,
+            # 'msg': msg,
+            # 'data': data_dict
+        # }), code
+        return {
             'code': code,
             'msg': msg,
             'data': data_dict
-        }), code
+        }
