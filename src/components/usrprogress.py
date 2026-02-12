@@ -75,7 +75,7 @@ class UsrProgress():
         ret = self._database.get(sql)
 
         if ret:
-            return ret
+            return ret[0]
 
         return 0
 

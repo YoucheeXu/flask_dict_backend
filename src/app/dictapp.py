@@ -835,9 +835,9 @@ class DictApp:
         level = self._target
 
         # where = "level = '" + level + "'"
-        allcount = self._usrprogress.get_allcount(level)
+        self._allcount = self._usrprogress.get_allcount(level)
         # self._win.webContents.send("gui", "modifyValue", "allCount", f"All words: {allCount}")
-        self._recitelogger.info(f"All words: {allcount}")
+        self._recitelogger.info(f"All words: {self._allcount}")
 
         # where = "level = '" + level + "' and LastDate is null "
         self._newcount = self._usrprogress.get_newcount(level)

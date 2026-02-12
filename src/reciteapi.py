@@ -45,7 +45,7 @@ class ReciteApi(MethodView):
                     data_dict = {
                         "allCount": self._app.allcount,
                         "newCount": self._app.newcount,
-                        "fnshdcount": self._app.fnshdcount,
+                        "fnshdCount": self._app.fnshdcount,
                         "inProgressCount": self._app.inprogresscount,
                         "num2Learn": self._app.learnum,
                         "num2Test": self._app.testnum
