@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+import os
 from typing import cast
 
 from flask import request, Response, current_app
@@ -66,8 +67,8 @@ class ReciteApi(MethodView):
                         "score": score,
                         "word": word,
                         "phonetic": phonetic,
-                        "audioURL": audio_url,
-                        "dictURL": dict_url,
+                        "audioURL": self._convert2relativepath(audio_url),
+                        "dictURL": self._convert2relativepath(dict_url),
                         "curLearnIndex": self._app.curlearnpos + 1,
                         "num2Learn": self._app.curlearnum,
                     }
@@ -87,8 +88,8 @@ class ReciteApi(MethodView):
                     _, audio1_url, *_ = self._app.query_word(dictbase, word1)
                     dict2_url, *_ = self._app.query_word(dictbase, word2)
                     data_dict = {
-                        "audio1URL": audio1_url,
-                        "dict2URL": dict2_url,
+                        "audio1URL": self._convert2relativepath(audio1_url),
+                        "dict2URL": self._convert2relativepath(dict2_url),
                         "curTestPos": self._app.curtestpos,
                         "curTestNum": self._app.curtestnum,
                     }
@@ -125,8 +126,8 @@ class ReciteApi(MethodView):
                 data_dict = {
                     "score": score,
                     "action": act2go,
-                    "audioURL": audio_url,
-                    "dictURL": dict_url,
+                    "audioURL": self._convert2relativepath(audio_url),
+                    "dictURL": self._convert2relativepath(dict_url),
                     "num2Learn": self._app.learnum,
                     "curCount": self._app.curcount,
                     "testTimes": self._app.testimes,
@@ -146,3 +147,7 @@ class ReciteApi(MethodView):
             'msg': msg,
             'data': data_dict
         }
+
+    def _convert2relativepath(self, abs_path: str):
+        relative_path = os.path.relpath(abs_path, self._proj_path)
+        return relative_path
