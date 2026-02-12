@@ -39,6 +39,17 @@ class ReciteApi(MethodView):
         data_dict = {}
         if para is None:
             match action:
+                case "start2recite":
+                    self._app.recite()
+                    code = 200
+                    data_dict = {
+                        "allCount": self._app.allcount,
+                        "newCount": self._app.newcount,
+                        "fnshdcount": self._app.fnshdcount,
+                        "inProgressCount": self._app.inprogresscount,
+                        "num2Learn": self._app.learnum,
+                        "num2Test": self._app.testnum
+                    }
                 case "go2studymode":
                     code = 200
                     _ = self._app.go_study_mode()
@@ -106,18 +117,7 @@ class ReciteApi(MethodView):
                     code = 400
                     msg = f"don't support to action {action}"
         else:
-            if action == "start2recite":
-                self._app.recite(para)
-                code = 200
-                data_dict = {
-                    "allCount": self._app.allcount,
-                    "newCount": self._app.newcount,
-                    "fnshdcount": self._app.fnshdcount,
-                    "inProgressCount": self._app.inprogresscount,
-                    "num2Learn": self._app.learnum,
-                    "num2Test": self._app.testnum
-                }
-            elif action == "checkinput":
+            if action == "checkinput":
                 code = 200
                 score, act2go = self._app.check_input(para)
                 dictbase: DictBase = cast(DictBase, self._app.dictbases.get(1))

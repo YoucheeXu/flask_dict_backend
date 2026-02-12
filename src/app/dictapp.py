@@ -824,7 +824,7 @@ class DictApp:
 
         return -1, "Usr doesn't exist!"
 
-    def recite(self, level: str):
+    def recite(self):
         self._recitelogger.info("Go!")
 
         # update info
