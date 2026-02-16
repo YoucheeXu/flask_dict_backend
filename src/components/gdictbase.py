@@ -309,7 +309,7 @@ class GDictBase(DictBase):
         js = tabalign + '<script src="../../../assets/player.js"></script>' + '\n'
         js += tabalign + f"<script src='{jsname}'></script>"
         togeg = tabalign + '<div id="toggle_example" align="right">- Hide Examples</div>'
-        html = f"<!DOCtyp html>\n<html>\n\t<body>\n{css}\n{js}\n{togeg}\n{dictdata}\n\t</body>\n</html>"
+        html = f"<!DOCTYPE html>\n<html>\n\t<body>\n{css}\n{js}\n{togeg}\n{dictdata}\n\t</body>\n</html>"
         with open(htmlfile, 'w', encoding="UTF-8") as f:
             _ = f.write(html)
         return True
