@@ -461,6 +461,9 @@ class DictApp:
             print(f"{'fail' if ret <=0 else 'success'}: {msg}")
             os.remove(save_path)
 
+    def add_level(self, word: str, level: str):
+        return self._wordbase.add_level(word, level)
+
     def add_file(self, which: str, num: int, localfile: str):
         ret = -1
         msg = f"{localfile} is no file"

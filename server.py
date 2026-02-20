@@ -52,6 +52,13 @@ def create_server():
         methods=['GET'],
     )
 
+    # words/{word}/add/level/{level}
+    app.add_url_rule(
+        '/words/<string:word>/add/level/<string:level>',
+        view_func=dict_view,
+        methods=['PATCH']
+    )
+
     # Maximum allowed upload file size: 100MB
     app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
     # Allowed file extensions for security control

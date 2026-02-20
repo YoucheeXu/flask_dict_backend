@@ -115,11 +115,24 @@ class DictApi(MethodView):
             'message': 'Success'
         }
 
-    def patch(self, book_id):
+    def patch(self, word: str, level: str):
         '''
             partly update
+            '/words/<string:word>/add/level/<string:level>',
         '''
-        pass
+        ret = self._dictapp.add_level(word, level)
+        if ret:
+            return {
+                'code': 200,
+                'msg': f"OK to mark {word}'s level {level}, all of its level: {ret}",
+                'data': ret
+            }
+        else:
+            return {
+                'code': 404,
+                'msg': f"Fail to mark {word}'s level {level}, all of its level: {ret}",
+                'data': ret  
+            }
 
     def _convert2relativepath(self, abs_path: str):
         relative_path = os.path.relpath(abs_path, self._proj_path)

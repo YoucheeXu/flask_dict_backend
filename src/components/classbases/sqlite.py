@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
+from collections.abc import Sequence, Mapping
 import sqlite3
 # from typing import Any
 
+
+# Sequence/dict for parameterized queries (None = no parameters)
+SQLParameters = Sequence[object] | Mapping[str, object] | None
 
 class SQLite:
     def __init__(self):
@@ -47,6 +51,55 @@ class SQLite:
 
         self._conn.commit()
         return True
+
+    def execute1(self, sql: str, params: SQLParameters = None):
+        """ Execute SQL with **automatic commit** (for write operations: INSERT/UPDATE/DELETE/CREATE).
+
+        Ideal for single, atomic write operations that need immediate persistence. Supports
+        parameterized queries to prevent SQL injection.
+
+        Args:
+            sql: Valid SQLite SQL statement (DDL/DML).
+            params: Optional parameter for parameterized queries, defaulting to None:
+                - Sequence types (e.g., tuple, list): Matched with "?" placeholders by position
+                - Dictionary types (e.g., dict): Matched with ":key" placeholders by key name
+                - None: Indicates a query without parameters
+
+        Returns:
+            bool: True if the SQL execution succeeds, False if it fails (e.g., invalid syntax).
+
+        Raises:
+            RuntimeError: If called before open() (no active database connection).
+            sqlite3.Error: For SQL execution errors (e.g., syntax error, constraint violation)
+                (no exception handling in this method).
+
+        Example:
+            >>> db.open(":memory:")
+            >>> db.execute1("CREATE TABLE users (id INT, name TEXT)")  # True
+            >>> db.execute1("INSERT INTO users VALUES (?, ?)", (1, "Alice"))  # True
+            >>> db.execute1("INSERT INTO users VALUES (:id, :name)", {"id": 2, "name": "Bob"})  # True
+        """
+        if not self._conn:
+            raise RuntimeError("Call open() first to initialize connection!")
+
+        try:
+            # Create cursor, execute query, commit immediately
+            cursor = self._conn.cursor()
+            # Bind parameters (match column order)
+            _ = cursor.execute(sql, params if params is not None else ())
+            self._conn.commit()  # Auto-commit for immediate persistence
+            cursor.close()
+            # return bool(ret)
+            # Check if row was inserted (cursor.rowcount = 1 if inserted, 0 if skipped)
+            return cursor.rowcount == 1
+
+        except sqlite3.Error as e:
+            # Rollback transaction on error to avoid partial changes
+            if self._conn:
+                self._conn.rollback()
+            raise RuntimeError(
+                f"Failed to execute {sql} with {params}"
+            ) from e
 
     def excute(self, command: str):
         _ = self._cur.execute(command)
