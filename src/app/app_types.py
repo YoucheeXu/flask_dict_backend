@@ -19,7 +19,7 @@ class WordDictDict(TypedDict):
 
 class UserDict(TypedDict):
     Name: str
-    Target: str
+    Target: list[str]
     Progress: str
 
 class AgentDict(TypedDict):
@@ -64,7 +64,6 @@ class ReciteDict(TypedDict):
     AudioBaseId: int
     DictBaseId: int
     Debug: DebugCfg
-    LastUser: str
 
 class SvrCfgDict(TypedDict):
     DictBases: list[DictDict]

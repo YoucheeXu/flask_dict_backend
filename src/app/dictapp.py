@@ -11,7 +11,6 @@ import logging
 from functools import partial
 from typing import TypedDict
 from typing import cast, Unpack
-# from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from src.logit import pv, po, pe
 from src.components.classbases.dictbase import DictBase
@@ -21,7 +20,7 @@ from src.components.mdictbase import MDictBase
 from src.components.sdictbase import SDictBase
 from src.components.worddict import WordDict
 from src.components.usrprogress import WorldProgressTuple, UsrProgress
-from src.app.app_types import SvrCfgDict
+from src.app.app_types import SvrCfgDict, UserDict
 from src.utilities.download_queue import TaskStatus, DownloadCallbackKwargs
 from src.utilities.download_queue import DownloadCallback, DownloadQueue
 
@@ -319,17 +318,17 @@ class DictApp:
                 self._timeday_list.append(time_interval["Interval"])
 
         # read user
-        self._usrname = recitecfg["LastUser"]
-        usrscfg = self._cfgdict["Users"]
-        for usrcfg in usrscfg:
-            if self._usrname == usrcfg["Name"]:
-                self._target = usrcfg["Target"]
-                progress = usrcfg["Progress"]
-                progressfile = os.path.join(self._start_path, progress)
-                _ = self._usrprogress.open(progressfile, self._target)
-                self._dictlogger.info(f"Select User: {self._usrname}, Level: {self._target}")
-                self._dictlogger.info(f"Progress: {progressfile}")
-                break
+        # self._usrname = recitecfg["LastUser"]
+        # usrscfg = self._cfgdict["Users"]
+        # for usrcfg in usrscfg:
+        #     if self._usrname == usrcfg["Name"]:
+        #         self._target = usrcfg["Target"]
+        #         progress = usrcfg["Progress"]
+        #         progressfile = os.path.join(self._start_path, progress)
+        #         _ = self._usrprogress.open(progressfile, self._target)
+        #         self._dictlogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+        #         self._dictlogger.info(f"Progress: {progressfile}")
+        #         break
 
         return True
 
@@ -740,84 +739,83 @@ class DictApp:
 
         return ActEnum.NOACT
 
-    def read_users(self):
-        """self._usrDict.forEach((usrName: str, levels: Array<str>) =>:
-                self._logger.info(f"User: {usrName, Levels: {levels")
-                self._win.webContents.send("gui", "appendList", "usr-select", usrName)
-                for (lvl in levels){
-        )
+    def list_levels(self):
+        return self._cfgdict["WordDict"]["Level"]
 
-        self._win.webContents.send("gui", "appendList", "usr-select", "Add more...")
-        self._win.webContents.send("gui", "appendList", "lvl-select", "Add more...")
+    def list_users(self):
+        user_list: list[str] = []
+        for user in self._cfgdict["Users"]:
+            user_list.append(user["Name"])
+        return user_list
 
-        self._win.webContents.send("gui", "displayOrHide", "SelDiag", True)
-        self._win.webContents.send("gui", "displayOrHide", "bg", True)
-        """
-        # return self._usrsDict
-
-    def read_allvls(self):
-    #     return self._appcfg["WordsDict"]["allLvls"]
-        pass
+    def get_user_level_dict(self):
+        user_level_dict: dict[str, list[str]] = {}
+        for user in self._cfgdict["Users"]:
+            user_level_dict[user["Name"]] = user["Target"]
+        return user_level_dict
 
     def new_level(self, usrname: str, level: str):
         po(f"usr: {usrname}, new level: {level}")
-
-        """
-        for (usrCfg in self._cfg.Users):
-            if (usrName == usrCfg.Name):
-                if (self._usrprogress === undefined):
-                    self._usrprogress = new UsrProgress()
-
-                progressFile = path.join(self._startpath, usrCfg.Progress).replace(/\\/g, "/")
-                self._usrprogress.Open(progressFile, level)
-                if ((self._usrprogress.ExistTable(level)) == False):
-                    self._usrprogress.NewTable(level)
-
-                lvlWordsLst: list[str] = []
-                ret = self._wordsDict.GetWordsLst(lvlWordsLst, level)
-                if (ret):
-                    for (word in lvlWordsLst):
-                        # po("Going to insert: " + word)
-                        self._usrprogress.InsertWord(word)
-                 else:
-                    return Promise.resolve<bool>(False)
-
-                target = usrCfg.Target
-                target[target.length] = level
-                self._bCfgModfied = True
-
-                return Promise.resolve<bool>(True)
-        """
+        _ = self._usrprogress.close()
+        for user in self._cfgdict["Users"]:
+            if usrname == user["Name"]:
+                progressfile = os.path.join(self._start_path, user['Progress'])
+                _ = self._usrprogress.open(progressfile)
+                _ = self._usrprogress.new_table(level)
+                for word in self._wordbase.each_word(level):
+                    self._usrprogress.insert_word(word, level)
+                user['Target'].append(level)
+                self._iscfgmodfied = True
+                self._usrname = usrname
+                self._target = level
+                self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+                self._recitelogger.info(f"Progress: {progressfile}")
+                return True
         return False
 
-    # TODO:
     def new_user(self, usrname: str, level: str):
+        po(f"new usr: {usrname}, new level: {level}")
+        # users/XYQ.progress
+        progressfile = os.path.join("users", usrname + ".progress")
+        fullprogressfile = os.path.join(self._start_path, progressfile)
+        _ = self._usrprogress.new(fullprogressfile, level)
+        for word in self._wordbase.each_word(level):
+            self._usrprogress.insert_word(word, level)
+        self._usrname = usrname
+        self._target = level
+        self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+        self._recitelogger.info(f"Progress: {progressfile}")
+        user: UserDict = {
+            'Name': usrname,
+            'Target': [level],
+            'Progress': progressfile
+        }
+        self._cfgdict["Users"].append(user)
         self._iscfgmodfied = True
-        # dict/XYQ.progress
-        progressfile = os.path.join(self._start_path, "dict", usrname + ".progress")
-        _ = self._usrprogress.new(progressfile, level)
 
-        lvlWordsLst: list[str] = []
-        # ret = self._wordsDict.GetWordsLst(lvlWordsLst, level)
-        # if (ret):
-        #     for (word in lvlWordsLst):
-        #         # po("Going to insert: " + word)
-        #         self._usrprogress.InsertWord(word)
-        #     
-        #  else:
-        #     return Promise.resolve<bool>(False)
+    def select_usr_level(self, usrname: str, level: str):
+        po(f"select usr: {usrname}, select level: {level}")
+        _ = self._usrprogress.close()
+        for user in self._cfgdict["Users"]:
+            if usrname == user["Name"]:
+                self._iscfgmodfied = True
+                progressfile = os.path.join(self._start_path, user['Progress'])
+                _ = self._usrprogress.open(progressfile)
+                self._usrname = usrname
+                self._target = level
+                self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+                self._recitelogger.info(f"Progress: {progressfile}")
 
     def is_level_done(self, usrname: str, level: str):
-        recitecfg = self._cfgdict["ReciteWords"]
-        self._usrname = recitecfg["LastUser"]
+        self._usrname = usrname
         usrscfg = self._cfgdict["Users"]
         for usrcfg in usrscfg:
             if usrname == usrcfg["Name"]:
                 progress = usrcfg["Progress"]
                 progressfile = os.path.join(self._start_path, progress)
-                self._dictlogger.info("progress: ", progressfile)
+                self._recitelogger.info("progress: ", progressfile)
 
-                _ = self._usrprogress.open(progressfile, level)
+                _ = self._usrprogress.open(progressfile)
                 num_unrecited_word1 = self._usrprogress.ge_inprogresscount(level)
                 num_unrecited_word2 = self._usrprogress.get_newcount(level)
                 if (num_unrecited_word1 + num_unrecited_word2 == 0):

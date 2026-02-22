@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-# from collections.abc import Generator
+import re
 from typing import cast
+from collections.abc import Generator
+
 from src.components.classbases.sqlite import SQLite
 
 
@@ -139,6 +141,73 @@ class WordDict:
             insert_query,
             (word.strip(), us_symbol, uk_symbol, level, stars)
         )
+
+    def _parse_filter_string(self, filter_str: str) -> tuple[set[str], set[str]]:
+        """
+        Parse a filter string (e.g., 'TOEFL-CET6', 'TOEFL+IELTS-CET6-GRE') into:
+        - include_set: Levels that MUST be present (unlimited quantity).
+        - exclude_set: Levels that MUST be absent (unlimited quantity).
+
+        Logic for "infinite operators":
+        - Regex splits on ALL +/-, captures operators and levels (no hard limits).
+        - Handles unlimited +/-, e.g., 'A+B-C-D+E-F' → include {A,B,E}, exclude {C,D,F}.
+        """
+        # Step 1: Normalize input (uppercase, strip whitespace)
+        filter_str = filter_str.strip().upper()
+
+        # Step 2: Regex to split into (operator, level) pairs (supports unlimited pairs)
+        # Pattern: match optional operator (+/-) + level (A-Z0-9+)
+        pattern = r'([\+\-])?([A-Z0-9]+)'
+        matches = re.findall(pattern, filter_str)
+
+        # Step 3: Build include/exclude sets (unlimited size)
+        include_set: set[str] = set()
+        exclude_set: set[str] = set()
+
+        for op, level in cast(list[str], matches):
+            if not level:  # Skip empty matches (defensive)
+                continue
+            if op == '-':
+                exclude_set.add(level)
+            else:  # Default to '+' (no operator = must include)
+                include_set.add(level)
+
+        return include_set, exclude_set
+
+    def is_target_match(self, filter_str: str, levels_str: str) -> bool:
+        """
+        Check if a semicolon-separated target string matches the filter rules (supports unlimited levels).
+
+        Args:
+            filter_str: e.g., 'TOEFL-CET6' (unlimited +/- operators).
+            levels_str: e.g., 'TOEFL;IELTS' (unlimited semicolon-separated levels).
+
+        Returns:
+            True = match (all include levels present, all exclude levels absent).
+        """
+        # Step 1: Parse filter into include/exclude sets (unlimited size)
+        include_set, exclude_set = self._parse_filter_string(filter_str)
+
+        # Step 2: Parse target string into a set of levels (unlimited quantity)
+        target_levels = set(level.strip().upper() for level in levels_str.split(';') if level.strip())
+
+        # Step 3: Match rules (supports unlimited levels in both sets)
+        # Rule 1: All include levels MUST be present (if include_set is not empty)
+        if include_set and not include_set.issubset(target_levels):
+            return False
+
+        # Rule 2: All exclude levels MUST be absent
+        if not exclude_set.isdisjoint(target_levels):
+            return False
+
+        # Rule 3: If include_set is empty (e.g., filter '-CET6'), match if no exclude levels
+        return True
+
+    def each_word(self, target_level: str) -> Generator[str, object, object]:
+        for word, levels in cast(Generator[tuple[str, str], None, None],
+                self._database.each('select Word, Level from Words')):
+            if self.is_target_match(target_level, levels):
+                yield from word
 
     def _get_item(self, word: str, item: str):
         # sql = "select " + item + " from Words where word = '" + word + "'"

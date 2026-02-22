@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-'''
-To-Do:
-* support create dict and initialize it
-'''
 import datetime
 from typing import NamedTuple
 from typing import cast
@@ -27,9 +23,11 @@ class WorldProgressTuple(NamedTuple):
 
 class UsrProgress():
     '''
-        Words: word, symbol, meaning, sentences, level, familiar, lastdate
-        Words: word, level, familiar, lastdate
-        Words: word, level, familiar, lastdate, nextdate
+        CREATE TABLE [CET6](
+            [Word] TEXT PRIMARY KEY NOT NULL, 
+            [Familiar] REAL, 
+            [LastDate] DATE
+        );
     '''
     def __init__(self):
         self._database: SQLite = SQLite()
@@ -37,8 +35,8 @@ class UsrProgress():
         self._progressfile: str = ""
         self._datestr_format: str = "%Y-%m-%d"
 
-    def open(self, dictsrc: str, level: str) -> tuple[int, str]:
-        self._level = level
+    def open(self, dictsrc: str):
+        # self._level = level
         self._progressfile = dictsrc
         return self._database.open(self._progressfile)
 
@@ -179,9 +177,9 @@ class UsrProgress():
 
         return False
 
-    def insert_word(self, wd: str):
-        entry = f"'{wd}', 0"
-        sql = f"INSERT INTO {self._level} (Word, Familiar) VALUES ({entry})"
+    def insert_word(self, wd: str, level: str, familiar: float = 0.0):
+        entry = f"'{wd}', {familiar}"
+        sql = f"INSERT INTO {level} (Word, Familiar) VALUES ({entry})"
         print(sql)
         r = self._database.excute1(sql)
         if r:
