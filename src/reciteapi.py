@@ -115,27 +115,45 @@ class ReciteApi(MethodView):
                     code = 200
                     self._app.save_progress()
                 case _:
-                    code = 400
+                    code = 404
                     msg = f"don't support to action {action}"
         else:
-            if action == "checkinput":
-                code = 200
-                score, act2go = self._app.check_input(para)
-                dictbase: DictBase = cast(DictBase, self._app.dictbases.get(1))
-                dict_url, audio_url, *_ = self._app.query_word(dictbase, para)
-                data_dict = {
-                    "score": score,
-                    "action": act2go,
-                    "audioURL": self._convert2relativepath(audio_url),
-                    "dictURL": self._convert2relativepath(dict_url),
-                    "num2Learn": self._app.learnum,
-                    "curCount": self._app.curcount,
-                    "testTimes": self._app.testimes,
-                    "num2Test": self._app.testnum,
-                }
-            else:
-                code = 400
-                msg = f"don't support to action {action} with level {para}"
+            match action:
+                case "list":
+                    if para =="levels":
+                        code = 200
+                        data_dict["levels"] = self._app.list_levels()
+                    elif para == "users":
+                        code = 200
+                        data_dict["users"] = self._app.list_users()
+                    else:
+                        code = 404
+                        msg = f"don't support to action {action} with {para}"
+                case "get":
+                    if para == "userlevelmap":
+                        code = 200
+                        data_dict =self._app.get_user_level_dict()
+                    else:
+                        code = 404
+                        msg = f"don't support to action {action} with {para}"
+                case "checkinput":
+                    code = 200
+                    score, act2go = self._app.check_input(para)
+                    dictbase: DictBase = cast(DictBase, self._app.dictbases.get(1))
+                    dict_url, audio_url, *_ = self._app.query_word(dictbase, para)
+                    data_dict = {
+                        "score": score,
+                        "action": act2go,
+                        "audioURL": self._convert2relativepath(audio_url),
+                        "dictURL": self._convert2relativepath(dict_url),
+                        "num2Learn": self._app.learnum,
+                        "curCount": self._app.curcount,
+                        "testTimes": self._app.testimes,
+                        "num2Test": self._app.testnum,
+                    }
+                case _:
+                    code = 404
+                    msg = f"don't support to action {action} with level {para}"
 
         # return jsonify({
             # 'code': code,
