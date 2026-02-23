@@ -166,6 +166,37 @@ class ReciteApi(MethodView):
             'data': data_dict
         }
 
+    def put(self, action: str):
+        '''
+            create
+        '''
+        code = 400
+        msg = ""
+        data_dict: dict[str, object] = {}
+        headers = request.headers
+        print(f"headers = {headers}")
+        # data_dict['headers'] = headers
+        json = request.json
+        data_dict['json'] = json
+        print(f"josn = {json}")
+        match action:
+            case "select":
+                code = 200
+                assert json is not None
+                user = cast(dict[str, str], json)['user']
+                level = cast(dict[str, str], json)['level']
+                self._app.select_usr_level(user, level)
+            case _:
+                code = 404
+                msg = f"don't support action {action}"
+                # data_dict['headers'] = request.headers
+                # data_dict['json'] = request.json
+        return {
+            'code': code,
+            'msg': msg,
+            'data': data_dict
+        }
+
     def _convert2relativepath(self, abs_path: str):
         relative_path = os.path.relpath(abs_path, self._proj_path)
         return relative_path

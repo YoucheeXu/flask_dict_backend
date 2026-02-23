@@ -760,7 +760,7 @@ class DictApp:
         for user in self._cfgdict["Users"]:
             if usrname == user["Name"]:
                 progressfile = os.path.join(self._start_path, user['Progress'])
-                _ = self._usrprogress.open(progressfile)
+                _ = self._usrprogress.open(progressfile, level)
                 _ = self._usrprogress.new_table(level)
                 for word in self._wordbase.each_word(level):
                     self._usrprogress.insert_word(word, level)
@@ -800,7 +800,8 @@ class DictApp:
             if usrname == user["Name"]:
                 self._iscfgmodfied = True
                 progressfile = os.path.join(self._start_path, user['Progress'])
-                _ = self._usrprogress.open(progressfile)
+                _ = self._usrprogress.open(progressfile, level)
+                self._usrprogress.select_level(level)
                 self._usrname = usrname
                 self._target = level
                 self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
@@ -815,7 +816,7 @@ class DictApp:
                 progressfile = os.path.join(self._start_path, progress)
                 self._recitelogger.info("progress: ", progressfile)
 
-                _ = self._usrprogress.open(progressfile)
+                _ = self._usrprogress.open(progressfile, level)
                 num_unrecited_word1 = self._usrprogress.ge_inprogresscount(level)
                 num_unrecited_word2 = self._usrprogress.get_newcount(level)
                 if (num_unrecited_word1 + num_unrecited_word2 == 0):

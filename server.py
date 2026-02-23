@@ -95,6 +95,9 @@ def create_server():
         defaults={'para': None},
         methods=['GET'],
     )
+    app.add_url_rule('/recite/<string:action>/', view_func=recite_view,
+        methods=['PUT'],
+    )
 
     app.run(host='0.0.0.0', debug=True,threaded=False) 
 

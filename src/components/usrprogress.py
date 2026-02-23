@@ -35,10 +35,14 @@ class UsrProgress():
         self._progressfile: str = ""
         self._datestr_format: str = "%Y-%m-%d"
 
-    def open(self, dictsrc: str):
+    def open(self, dictsrc: str, level: str):
         # self._level = level
         self._progressfile = dictsrc
+        self._level = level
         return self._database.open(self._progressfile)
+
+    def select_level(self, level: str):
+        self._level = level
 
     @property
     def progressfile(self):

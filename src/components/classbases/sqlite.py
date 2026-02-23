@@ -12,8 +12,8 @@ SQLParameters = Sequence[object] | Mapping[str, object] | None
 
 class SQLite:
     def __init__(self):
-        self._conn: sqlite3.Connection
-        self._cur: sqlite3.Cursor
+        self._conn: sqlite3.Connection | None = None
+        self._cur: sqlite3.Cursor | None = None
 
     # def Open(self, path: str) -> str:
         # _this = this;
@@ -46,6 +46,8 @@ class SQLite:
 
     # any query: insert/delete/update
     def excute1(self, command: str) -> bool:
+        assert self._cur is not None
+        assert self._conn is not None
         ret = self._cur.execute(command)
         if not ret:
             return False
@@ -103,12 +105,15 @@ class SQLite:
             ) from e
 
     def excute(self, command: str):
+        assert self._cur is not None
         _ = self._cur.execute(command)
 
     def commit(self):
+        assert self._conn is not None
         self._conn.commit()
 
     def get(self, query: str):
+        assert self._cur is not None
         # first row read
         _ = self._cur.execute(query)
         records = self._cur.fetchone()
