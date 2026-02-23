@@ -186,6 +186,16 @@ class ReciteApi(MethodView):
                 user = cast(dict[str, str], json)['user']
                 level = cast(dict[str, str], json)['level']
                 self._app.select_usr_level(user, level)
+            case "new":
+                code = 200
+                assert json is not None
+                user = cast(dict[str, str], json)['user']
+                level = cast(dict[str, str], json)['level']
+                users = self._app.list_users()
+                if user in users:
+                    _ = self._app.new_level(user, level)
+                else:
+                    self._app.new_user(user, level)
             case _:
                 code = 404
                 msg = f"don't support action {action}"
