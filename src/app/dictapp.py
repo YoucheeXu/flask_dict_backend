@@ -272,10 +272,9 @@ class DictApp:
         worddict_cfg = self._cfgdict["WordDict"]
         worddict_src = os.path.join(self._start_path, worddict_cfg["Src"])
 
-        self._wordbase = WordDict()
         ret, msg = self._wordbase.open(worddict_cfg["Name"], worddict_src)
         if ret != 1:
-            self._dictlogger.error(f"Fail to open Words.dict, because of {msg}")
+            self._dictlogger.error(f"Fail to open {worddict_src}, because of {msg}")
 
         # usrsCfg = JSON.parse(JSON.stringify(self._cfg['Users']))
 
@@ -442,11 +441,8 @@ class DictApp:
             # self.Info(0, 2, "", "")
             pass
 
-        level = ""
-        stars = 0
-        # if self._wordbase is not None:
-            # level = self._wordbase.get_level(word)
-            # stars = self._wordbase.get_star(word)
+        level = self._wordbase.get_level(word)
+        stars = self._wordbase.get_star(word)
 
         return dict_url, audio_url, is_new, level, stars
 
