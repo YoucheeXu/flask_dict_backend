@@ -359,7 +359,7 @@ class DictApp:
         with open(file_, "w", encoding="utf-8") as f:
             _ = f.write(something)
 
-    def query_word(self, dictbase_: DictBase, word: str) -> tuple[str, str, bool, str, int]:
+    def query_word(self, dict_id: int, word: str) -> tuple[str, str, bool, str, int]:
         '''
             return [dict_url, audio_url, is_new, level, stars]
         '''
@@ -368,35 +368,36 @@ class DictApp:
 
         is_new = False
 
-        # dictbase_ = self.__dictbase_map[dictname]
-        self._dictlogger.info(f"query word '{word}' in dict '{dictbase_.name}'")
+        dictbase = self._dictbase_map.get(dict_id)
+        assert dictbase is not None
+        self._dictlogger.info(f"query word '{word}' in dict '{dictbase.name}'")
 
-        ret_dict, dict_url = dictbase_.query_word(word)
+        ret_dict, dict_url = dictbase.query_word(word)
         # print(f"ret_dict: {ret_dict}, dict: {dict}")
         ret_audio, audio_url = self._audiobase.query_word(word)
 
         if ret_dict == 0:
-            if dictbase_.download is not None:
+            if dictbase.download is not None:
                 print(f"Going to download: {dict_url}")
-                dict_url = dictbase_.download["URL"].format(word)
-                save_path = dictbase_.download["SavePath"].format(word)
+                dict_url = dictbase.download["URL"].format(word)
+                save_path = dictbase.download["SavePath"].format(word)
                 callback = cast(DownloadCallback,
-                    partial(self._download_callback, dictbase_, f"word '{word}'"))
+                    partial(self._download_callback, dictbase, f"word '{word}'"))
                 _ = self._download_queue.add_task(
                     url=dict_url,
                     save_path=save_path,
                     task_callback=callback)
             else:
-                err_msg = f"Dict of {word}: {dictbase_.name} doesn't support to download.\n"
+                err_msg = f"Dict of {word}: {dictbase.name} doesn't support to download.\n"
                 self._record2file(self._missdict_file, err_msg)
                 # self.Info(-1, 1, word, err_msg)
-            dict_url = f"there is no {word} in {dictbase_.name}."
+            dict_url = f"there is no {word} in {dictbase.name}."
 
         if ret_dict < 0:
             self._record2file(self._missdict_file, dict_url)
 
         if ret_dict <= 0:
-            dicterr_file = os.path.join(dictbase_.tempdir, word + "-error.html")
+            dicterr_file = os.path.join(dictbase.tempdir, word + "-error.html")
             html = f"<div class='headword'>\n\t<div class='text'>{dict_url}</div>\n</div>"
             with open(dicterr_file, "w", encoding="utf-8") as f:
                 _ = f.write(html)

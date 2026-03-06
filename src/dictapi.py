@@ -67,7 +67,7 @@ class DictApi(MethodView):
                 }
 
             # query word, /dicts/{dict_id}/{word}
-            dict_url, audio_url, is_new, level, stars = self._dictapp.query_word(dictbase, word)
+            dict_url, audio_url, is_new, level, stars = self._dictapp.query_word(dict_id, word)
             return {
                 'status': 'success',
                 'message': 'success to query',
