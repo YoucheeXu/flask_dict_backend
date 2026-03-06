@@ -66,6 +66,15 @@ class DictApi(MethodView):
                     }
                 }
 
+            if word[-1] == '*':
+                # query word like list, /dicts/{dict_id}/{word*}
+                word_dict = self._dictapp.query_wordlike(dict_id, word, 10)
+                return {
+                    'status': 'success',
+                    'message': 'success to query',
+                    'data': word_dict
+                }
+
             # query word, /dicts/{dict_id}/{word}
             dict_url, audio_url, is_new, level, stars = self._dictapp.query_word(dict_id, word)
             return {

@@ -45,7 +45,7 @@ class SDictBase(DictBase):
             # return 1, htmlfile
         query = "select * from Words where word = '" + word + "'"
         row = cast(WordTuple | None, self._dictbase.get(query))
-        print(f"{word} = {row}")
+        # print(f"{word} = {row}")
         # word = row[0]
         # phonetic = row[1]
         # meaning = row[2]
@@ -64,7 +64,7 @@ class SDictBase(DictBase):
         # with open(htmlfile, 'w', encoding="UTF-8") as f:
             # _ = f.write(html)
         if row:
-            return 1, str(row)
+            return 1, row
         else:
             return -1, f"now {word} in {self._name}"
 
@@ -74,8 +74,8 @@ class SDictBase(DictBase):
         where = "word like '" + word + "%'"
         query = "select word from Words where " + where + f"Limit {limit}"
         for row in cast(Generator[str, None, None], self._dictbase.each(query)):
-            print(f"row = {row}")
-            word_list.append(row)
+            # print(f"row = {row}")
+            word_list.append(row[0])
         return word_list
 
     @override

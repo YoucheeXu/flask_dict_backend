@@ -359,6 +359,25 @@ class DictApp:
         with open(file_, "w", encoding="utf-8") as f:
             _ = f.write(something)
 
+    def query_wordlike(self, dict_id: int, word: str, limit: int):
+        '''
+            return dict[word, meaning]
+        '''
+
+        dictbase = self._dictbase_map.get(dict_id)
+        assert dictbase is not None
+        self._dictlogger.info(f"query '{word}' in dict '{dictbase.name}', limit {limit}")
+
+        word_list = dictbase.get_wordlist(word[:-1], limit)
+        print(f'word list = {word_list}')
+
+        word_dict: dict[str, str] = {}
+        for word in word_list:
+            ret_dict, dict_tuple = dictbase.query_word(word)
+            word_dict[word] = dict_tuple[2].replace('<br>\n', '; ')
+
+        return word_dict
+
     def query_word(self, dict_id: int, word: str) -> tuple[str, str, bool, str, int]:
         '''
             return [dict_url, audio_url, is_new, level, stars]
