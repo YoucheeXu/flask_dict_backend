@@ -7,6 +7,7 @@ import json
 from html import unescape
 import codecs
 import re
+import zipfile
 from typing import override, Any
 
 from src.components.classbases.dictbase import DictBase
@@ -18,7 +19,42 @@ class GDictBase(DictBase):
     def __init__(self):
         super().__init__()
         self._dictzip: ZipArchive = ZipArchive()
-        self._stylezip: ZipArchive = ZipArchive()
+
+    def _extract_all_zip(self, zip_path: str, target_dir: str) -> None:
+        """
+        Extract all files from a ZIP archive to a target directory.
+        
+        Args:
+            zip_path: Path to the ZIP file (e.g., "data.zip")
+            target_dir: Directory to extract files to (created if it doesn't exist)
+        
+        Raises:
+            FileNotFoundError: If the ZIP file doesn't exist
+            zipfile.BadZipFile: If the file is not a valid ZIP archive
+            PermissionError: If access to the directory/file is denied
+        """
+        # Create target directory if it doesn't exist
+        os.makedirs(target_dir, exist_ok=True)
+
+        # Open the ZIP file and extract all contents (use 'with' for safe file handling)
+        try:
+            with zipfile.ZipFile(zip_path, mode="r") as zip_ref:
+                # Extract all files/folders to the target directory
+                zip_ref.extractall(path=target_dir)
+                print(f"Successfully extracted all files to: {os.path.abspath(target_dir)}")
+
+                # Optional: List all extracted files for verification
+                # print("\nExtracted files:")
+                # for file in zip_ref.namelist():
+                #     print(f"- {file}")
+        except FileNotFoundError:
+            print(f"Error: ZIP file '{zip_path}' not found.")
+        except zipfile.BadZipFile:
+            print(f"Error: '{zip_path}' is not a valid ZIP file (or it's corrupted).")
+        except PermissionError:
+            print(f"Error: Permission denied to access '{zip_path}' or '{target_dir}'.")
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
 
     @override
     def open(self, name: str, src: str) -> tuple[int, str]:
@@ -26,29 +62,8 @@ class GDictBase(DictBase):
         filepath, filename = os.path.split(self._src)
         name, _ = os.path.splitext(filename)
         stylesrc = os.path.join(filepath, name + "-style.zip")
-        _ = self._stylezip.open(stylesrc)
 
-        # TODO: change to extract all files automatically
-        jsname = "google-toggle.js"
-        jsfile = os.path.join(self._tempdir, jsname)
-        # print(f"jsfile = {jsfile}")
-        if not os.path.isfile(jsfile):
-            if self._stylezip.has_file(jsname):
-                data = self._stylezip.read_file(jsname)
-                # if data is None:
-                    # return -1, f"Fail to read {jsname} in {self.__stylezip}"
-                with open(jsfile, "wb") as f:
-                    _ = f.write(data)
-        cssname = "google.css"
-        cssfile = os.path.join(self._tempdir, cssname)
-        # print(f"cssfile = {cssfile}")
-        if not os.path.isfile(cssfile):
-            if self._stylezip.has_file(cssname):
-                data = self._stylezip.read_file(cssname)
-                # if data is None:
-                    # return -1, f"Fail to read {cssname} in {self.__stylezip}"
-                with open(cssfile, "wb") as f:
-                    _ = f.write(data)
+        self._extract_all_zip(stylesrc, self._tempdir)
 
         if self._download is not None:
             self._download["SavePath"] = os.path.join(self._tempdir, "{}.json")
@@ -303,10 +318,10 @@ class GDictBase(DictBase):
         jsname = "google-toggle.js"
         cssname = "google.css"
 
-        css = tabalign + '<link rel="stylesheet" href="../../../assets/player.css">' + '\n'
+        css = tabalign + '<link rel="stylesheet" href="./player.css">' + '\n'
         css += tabalign + f"<link rel='stylesheet' typ='text/css' href='{cssname}'>"
 
-        js = tabalign + '<script src="../../../assets/player.js"></script>' + '\n'
+        js = tabalign + '<script src="./player.js"></script>' + '\n'
         js += tabalign + f"<script src='{jsname}'></script>"
         togeg = tabalign + '<div id="toggle_example" align="right">- Hide Examples</div>'
         html = f"<!DOCTYPE html>\n<html>\n\t<body>\n{css}\n{js}\n{togeg}\n{dictdata}\n\t</body>\n</html>"
