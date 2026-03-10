@@ -38,6 +38,7 @@ class ReciteApi(MethodView):
         code = 400
         msg = ""
         data_dict = {}
+        dict_id = 1
         if para is None:
             match action:
                 case "start2recite":
@@ -60,8 +61,7 @@ class ReciteApi(MethodView):
                 case "studynext":
                     code = 200
                     score, word = self._app.study_next()
-                    dictbase = cast(DictBase, self._app.dictbases.get(1))
-                    dict_url, audio_url, *_ = self._app.query_word(dictbase, word)
+                    dict_url, audio_url, *_ = self._app.query_word(dict_id, word)
                     phonetic= ""
                     data_dict = {
                         "score": score,
@@ -84,9 +84,8 @@ class ReciteApi(MethodView):
                 case "testnext":
                     code = 200
                     word1, word2 = self._app.test_next()
-                    dictbase = cast(DictBase, self._app.dictbases.get(1))
-                    _, audio1_url, *_ = self._app.query_word(dictbase, word1)
-                    dict2_url, *_ = self._app.query_word(dictbase, word2)
+                    _, audio1_url, *_ = self._app.query_word(dict_id, word1)
+                    dict2_url, *_ = self._app.query_word(dict_id, word2)
                     data_dict = {
                         "audio1URL": self._convert2relativepath(audio1_url),
                         "dict2URL": self._convert2relativepath(dict2_url),
@@ -139,8 +138,7 @@ class ReciteApi(MethodView):
                 case "checkinput":
                     code = 200
                     score, act2go = self._app.check_input(para)
-                    dictbase: DictBase = cast(DictBase, self._app.dictbases.get(1))
-                    dict_url, audio_url, *_ = self._app.query_word(dictbase, para)
+                    dict_url, audio_url, *_ = self._app.query_word(dict_id, para)
                     data_dict = {
                         "score": score,
                         "action": act2go,
