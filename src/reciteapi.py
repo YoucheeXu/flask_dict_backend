@@ -69,7 +69,7 @@ class ReciteApi(MethodView):
                         "phonetic": phonetic,
                         "audioURL": self._convert2relativepath(audio_url),
                         "dictURL": self._convert2relativepath(dict_url),
-                        "curLearnIndex": self._app.curlearnpos + 1,
+                        "curLearnIndex": self._app.curlearnpos,
                         "num2Learn": self._app.curlearnum,
                     }
                 case "go2testmode":

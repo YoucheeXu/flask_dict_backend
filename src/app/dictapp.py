@@ -528,7 +528,6 @@ class DictApp:
         if ll > 0:
             self._curword = self._curlearn_list[self._curlearn_pos]
 
-            # lastDate = self._usrprogress.get_lastdate(self._curword)
             lastDate = self._word_dict[self._curword]["lastdate"]
             familiar = self._word_dict[self._curword]["familiar"]
 
@@ -539,11 +538,7 @@ class DictApp:
             else:
                 score = ""
 
-            # gLogger.info("LearnPos: %d" %(self._CurLearnPos))
-            # logstr = "LearnWord: %s, familiar: %.2f" %(word, self._WordsDict[word])
-            # print(type(self._WordsDict[word]))
             self._recitelogger.info(f"LearnWord: {self._curword}, familiar: {familiar:.1f}")
-            # gLogger.info(logstr)
 
             self._curlearn_pos += 1
 
