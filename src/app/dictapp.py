@@ -641,7 +641,8 @@ class DictApp:
     def test_next(self):
         self._curword = self._curtest_list[self._curtest_pos]
 
-        self._recitelogger.info(f"TestWord: {self._curword}, familiar: {self._curword:.1f}")
+        self._recitelogger.info((f"TestWord: {self._curword}, "
+            f"familiar: {self._word_dict[self._curword]["familiar"]:.1f}"))
 
         lastword = ""
 
