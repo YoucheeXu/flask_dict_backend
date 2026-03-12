@@ -19,7 +19,7 @@ class ReciteApi(MethodView):
     """
     def __init__(self):
         self._proj_path: str = cast(str, current_app.static_folder)
-        print(f"self._proj_path = {self._proj_path}")
+        # print(f"self._proj_path = {self._proj_path}")
         self._app: DictApp = get_dict_app(self._proj_path)
 
     def get(self, action: str, para: str | None):

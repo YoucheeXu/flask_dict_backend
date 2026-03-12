@@ -19,7 +19,7 @@ class DictApi(MethodView):
     '''
     def __init__(self):
         self._proj_path: str = cast(str, current_app.static_folder)
-        print(f"self._proj_path = {self._proj_path}")
+        # print(f"self._proj_path = {self._proj_path}")
         self._dictapp: DictApp = get_dict_app(self._proj_path)
         self._dictbase_dict: dict[int, str] = {}
         for key, val in self._dictapp.dictbases.items():

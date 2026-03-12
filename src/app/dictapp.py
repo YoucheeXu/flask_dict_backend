@@ -505,7 +505,7 @@ class DictApp:
             False: test_mode
         """
         self._mode = "Study Mode"
-        po("Study Mode")
+        self._recitelogger.info(f"Go to {self._mode}")
 
         self._curlearn_pos = 0
         ll = len(self._learn_list)
@@ -538,9 +538,10 @@ class DictApp:
             else:
                 score = ""
 
-            self._recitelogger.info(f"LearnWord: {self._curword}, familiar: {familiar:.1f}")
-
             self._curlearn_pos += 1
+
+            self._recitelogger.info((f"learnWord: {self._curword}, "
+                f"familiar: {familiar:.1f}, curLearnPos = {self._curlearn_pos}"))
 
         return score, self._curword
 
@@ -604,7 +605,7 @@ class DictApp:
             4: finish
         """
         self._mode = "Test Mode"
-        po("Test Mode")
+        self._recitelogger.info(f"Go to {self._mode}")
 
         if len(self._test_list) > 0 and self._cur_count <= self._test_times:
             #self.__CurCount += 1
@@ -636,9 +637,6 @@ class DictApp:
     def test_next(self):
         self._curword = self._curtest_list[self._curtest_pos]
 
-        self._recitelogger.info((f"TestWord: {self._curword}, "
-            f"familiar: {self._word_dict[self._curword]["familiar"]:.1f}"))
-
         lastword = ""
 
         if self._curtest_pos >= 1:
@@ -647,6 +645,11 @@ class DictApp:
             lastword = self._curtest_list[-1]
 
         self._curtest_pos += 1
+
+        self._recitelogger.info((f"testWord: {self._curword}, "
+            f"familiar: {self._word_dict[self._curword]["familiar"]:.1f}, "
+            f"curTestPos: {self._curtest_pos}"
+        ))
 
         return self._curword, lastword
 
@@ -806,7 +809,7 @@ class DictApp:
         self._iscfgmodfied = True
 
     def select_usr_level(self, usrname: str, level: str):
-        po(f"select usr: {usrname}, select level: {level}")
+        # po(f"select usr: {usrname}, select level: {level}")
         _ = self._usrprogress.close()
         for user in self._cfgdict["Users"]:
             if usrname == user["Name"]:
@@ -826,7 +829,7 @@ class DictApp:
             if usrname == usrcfg["Name"]:
                 progress = usrcfg["Progress"]
                 progressfile = os.path.join(self._start_path, progress)
-                self._recitelogger.info("progress: ", progressfile)
+                # self._recitelogger.info("progress: ", progressfile)
 
                 _ = self._usrprogress.open(progressfile, level)
                 num_unrecited_word1 = self._usrprogress.ge_inprogresscount(level)

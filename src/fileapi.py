@@ -20,7 +20,7 @@ class FileApi(MethodView):
     """
     def __init__(self):
         self._proj_path: str = cast(str, current_app.static_folder)
-        print(f"self._proj_path = {self._proj_path}")
+        # print(f"self._proj_path = {self._proj_path}")
         self._dictapp: DictApp = get_dict_app(self._proj_path)
 
     def get(self, itemspath: str, itemname: str = "", filename: str = ""):
@@ -34,9 +34,9 @@ class FileApi(MethodView):
         Returns:
             _type_: _description_
         """
-        print(f"itemspath = {itemspath}")
-        print(f"itemname = {itemname}")
-        print(f"filename = {filename}")
+        # print(f"itemspath = {itemspath}")
+        # print(f"itemname = {itemname}")
+        # print(f"filename = {filename}")
         if itemname:
             # filefile = os.path.abspath(os.path.join(self._proj_path, itemspath, itemname, "output", filename))
             # redirect_path = f"/{itemspath}/{itemname}/output/{filename}"
@@ -49,7 +49,7 @@ class FileApi(MethodView):
             target_filename = f"{itemspath}/{filename}"
 
         normalized_filename = os.path.normpath(target_filename.replace("\\", "/"))
-        print(f"normalized_filename = {normalized_filename}")
+        # print(f"normalized_filename = {normalized_filename}")
         # redirect_path = url_for('static', filename=target_filename)
         # pv(redirect_path)
         # print(f"redirect_path = {redirect_path}")
@@ -57,7 +57,7 @@ class FileApi(MethodView):
         full_physical_path = os.path.abspath(
             os.path.join(self._proj_path, normalized_filename)
         )
-        print(f"full_physical_path = {full_physical_path}")
+        # print(f"full_physical_path = {full_physical_path}")
 
         # return redirect(redirect_path)
 
