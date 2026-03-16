@@ -23,6 +23,7 @@ from src.components.usrprogress import WorldProgressTuple, UsrProgress
 from src.app.app_types import SvrCfgDict, UserDict
 from src.utilities.download_queue import TaskStatus, DownloadCallbackKwargs
 from src.utilities.download_queue import DownloadCallback, DownloadQueue
+from src.utilities.message_sender import notify_user
 
 
 class WorldProgressDict(TypedDict):
@@ -73,7 +74,7 @@ class DictApp:
 
         self._timeday_list: list[int] = []
 
-        self._usrname: str = ""
+        self._user_name: str = "anonymous"
         self._target: str = ""
 
         self._allcount: int = 0
@@ -158,24 +159,10 @@ class DictApp:
     def curword(self):
         return self._curword
 
-    """
-    def _parse_compr(self, compr: str) -> int:
-        match compr:
-            case "ZIP_DEFLATED":
-                return ZIP_DEFLATED
-            case "ZIP_STORED":
-                return ZIP_STORED
-            case _:
-                return ZIP_DEFLATED
-    """
-
     def _add_dictbase(self, name: str, dictsrc: str, format: str):
         dictbase: DictBase | None = None
-        # if format_["Type"] == 'ZIP':
         match format:
             case 'ZIP':
-                # compr: int = self.__parse_compr(format_["Compression"])
-                # dictbase_ = GDictBase(name, dictsrc, compr, format_["Compress_Level"])
                 dictbase = GDictBase()
             case 'SQLite':
                 dictbase = SDictBase()
@@ -192,23 +179,6 @@ class DictApp:
             self._dictlogger.error(f"fail to Open {name}, due to {msg}")
 
         return dictbase
-
-    # def _log(self, log_level: int, msg: str):
-        # if not self._logger:
-            # return
-        # match log_level:
-            # case logging.DEBUG:
-                # self._logger.debug(msg)
-            # case logging.INFO:
-                # self._logger.info(msg)
-            # case logging.WARN:
-                # self._logger.warning(msg)
-            # case logging.ERROR:
-                # self._logger.error(msg)
-            # case logging.CRITICAL:
-                # self._logger.critical(msg)
-            # case _:
-                # self._logger.info(msg)
 
     def read_configure(self, cfgfile: str) -> bool:
         self._cfgfile = cfgfile
@@ -250,10 +220,7 @@ class DictApp:
         audio_src = os.path.join(self._start_path, audio_cfg["Src"])
         audio_format = audio_cfg['Format']
         if audio_format == 'ZIP':
-            # compr = self.__parse_compr(autido_type["Compression"])
             audio_name = audio_cfg["Name"]
-            # comprlvl = autido_type["CompressLevel"]
-            # self.__audiobase = AuidoArchive(audio_name, dict_src, compr, comprlvl)
             self._audiobase = AuidoArchive()
             self._audiobase.desc = audio_cfg["Desc"]
             ret, msg = self._audiobase.open(audio_name, audio_src)
@@ -469,11 +436,15 @@ class DictApp:
     def _download_callback(self, db: DictBase, msg: str,
             **kwargs: Unpack[DownloadCallbackKwargs]):
         status = kwargs['status']
-        print(f"{msg} download: {status.name}")
+        extra_msg = kwargs.get('extra_msg', '')
+        # print(f"{msg} download: {status.name}")
+        _ = notify_user(self._user_name, f"{msg}: {extra_msg}")
         if status == TaskStatus.SUCCEEDED:
             save_path = kwargs['save_path']
             ret, msg = db.check_addword(save_path)
-            print(f"{'fail' if ret <=0 else 'success'}: {msg}")
+            ret_msg = f"{'fail:' if ret <=0 else 'Success'}: {msg}"
+            # print(ret_msg)
+            _ = notify_user(self._user_name, ret_msg)
             os.remove(save_path)
 
     def add_level(self, word: str, level: str):
@@ -553,7 +524,7 @@ class DictApp:
                 return score, ActEnum.STUDY_NEXT
             else:
                 self._cur_count = 1
-                self._recitelogger.info("curCount: %d" %(self._cur_count))
+                self._recitelogger.info(f"curCount: {self._cur_count}, totalCount: {self._allcount}")
                 self._curtest_list = self._curlearn_list[:]
                 # self._go_test_mode()
                 return score, ActEnum.TEST_MODE
@@ -781,9 +752,9 @@ class DictApp:
                     self._usrprogress.insert_word(word, level)
                 user['Target'].append(level)
                 self._iscfgmodfied = True
-                self._usrname = usrname
+                self._user_name = usrname
                 self._target = level
-                self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+                self._recitelogger.info(f"Select User: {self._user_name}, Level: {self._target}")
                 self._recitelogger.info(f"Progress: {progressfile}")
                 return True
         return False
@@ -796,9 +767,9 @@ class DictApp:
         _ = self._usrprogress.new(fullprogressfile, level)
         for word in self._wordbase.each_word(level):
             self._usrprogress.insert_word(word, level)
-        self._usrname = usrname
+        self._user_name = usrname
         self._target = level
-        self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+        self._recitelogger.info(f"Select User: {self._user_name}, Level: {self._target}")
         self._recitelogger.info(f"Progress: {progressfile}")
         user: UserDict = {
             'Name': usrname,
@@ -817,13 +788,13 @@ class DictApp:
                 progressfile = os.path.join(self._start_path, user['Progress'])
                 _ = self._usrprogress.open(progressfile, level)
                 self._usrprogress.select_level(level)
-                self._usrname = usrname
+                self._user_name = usrname
                 self._target = level
-                self._recitelogger.info(f"Select User: {self._usrname}, Level: {self._target}")
+                self._recitelogger.info(f"Select User: {self._user_name}, Level: {self._target}")
                 self._recitelogger.info(f"Progress: {progressfile}")
 
     def is_level_done(self, usrname: str, level: str):
-        self._usrname = usrname
+        self._user_name = usrname
         usrscfg = self._cfgdict["Users"]
         for usrcfg in usrscfg:
             if usrname == usrcfg["Name"]:
