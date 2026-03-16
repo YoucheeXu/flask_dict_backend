@@ -142,7 +142,7 @@ class UsrProgress():
     def del_word(self, wd: str):
         sql = f"DELETE FROM {self._level} WHERE Word='{wd}'"
 
-        r = self._database.excute1(sql)
+        r = self._database.execute1(sql)
         if r:
             print(wd + " was deleted.")
 
@@ -152,7 +152,7 @@ class UsrProgress():
         return self.new_table(lvl)
 
     def new_table(self, lvl: str) -> bool:
-        r = self._database.excute1((f"CREATE TABLE {lvl}(Word text NOT NULL PRIMARY KEY, "
+        r = self._database.execute1((f"CREATE TABLE {lvl}(Word text NOT NULL PRIMARY KEY, "
             f"Familiar REAL, LastDate datetime.date, NextDate datetime.date)"))
         if r:
             self._level = lvl
@@ -185,7 +185,7 @@ class UsrProgress():
         entry = f"'{wd}', {familiar}"
         sql = f"INSERT INTO {level} (Word, Familiar) VALUES ({entry})"
         print(sql)
-        r = self._database.excute1(sql)
+        r = self._database.execute1(sql)
         if r:
             print(wd + " was inserted.")
 
@@ -282,7 +282,7 @@ class UsrProgress():
         sql = f"""update {table} set Familiar={familiar},
             LastDate=date('{today}')
             where Word='{word}'"""
-        return self._database.excute1(sql)
+        return self._database.execute1(sql)
 
     def update_progress2(self, word: str, familiar: int, last_date:
             datetime.date, next_date: datetime.date):
@@ -292,4 +292,4 @@ class UsrProgress():
                 NextDate=date('{next_date}')
                 where Word='{word}'
             """
-        return self._database.excute1(sql)
+        return self._database.execute1(sql)

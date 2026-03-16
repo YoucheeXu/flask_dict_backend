@@ -232,7 +232,7 @@ class WordDict:
         sql += f" where Word='{word}'"
         print(sql)
 
-        return self._database.excute1(sql)
+        return self._database.execute1(sql)
 
     def update_level(self, word: str, level: str) -> bool:
         return self._update_item(word, "Level", level)

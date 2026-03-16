@@ -44,17 +44,6 @@ class SQLite:
 
         return 1, sqlfile + "is OK to open!"
 
-    # any query: insert/delete/update
-    def excute1(self, command: str) -> bool:
-        assert self._cur is not None
-        assert self._conn is not None
-        ret = self._cur.execute(command)
-        if not ret:
-            return False
-
-        self._conn.commit()
-        return True
-
     def execute1(self, sql: str, params: SQLParameters = None):
         """ Execute SQL with **automatic commit** (for write operations: INSERT/UPDATE/DELETE/CREATE).
 
