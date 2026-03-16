@@ -7,8 +7,7 @@ import uuid
 from pathlib import Path
 from time import sleep
 from enum import auto, IntEnum
-from typing import NotRequired, TypedDict, Protocol, Unpack
-# from collections.abc import Callable
+from typing import TypedDict, Protocol, Unpack
 
 class TaskStatus(IntEnum):
     QUEUED = auto()     # "queued", added to queue but not started
@@ -31,7 +30,7 @@ class DownloadCallbackKwargs(TypedDict):
     status: TaskStatus
     # url: str
     save_path: str
-    extra_msg: NotRequired[str]
+    extra_msg: str
 
 # Define the precise callback type
 # DownloadCallback = Callable[[Unpack[DownloadCallbackKwargs]], None]
@@ -91,7 +90,8 @@ class DownloadQueue:
                 task_callback=task_callback,
                 status=TaskStatus.STARTED,
                 # url=url,
-                save_path=save_path
+                save_path=save_path,
+                extra_msg="start to download"
             )
 
             # Send HTTP request with proxy support and stream download
@@ -118,7 +118,7 @@ class DownloadQueue:
             is_success = True
 
         except requests.RequestException as e:
-            extra_msg = f"Fail to download：{str(e)}"
+            extra_msg = f"fail to download, because{str(e)}"
             print(f"task {task_id[:8]} download exception：{extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -129,7 +129,7 @@ class DownloadQueue:
                 extra_msg=extra_msg
             )
         except OSError as e:
-            extra_msg = f"fail to operate file: {str(e)}"
+            extra_msg = f"fail to operate file, because {str(e)}"
             print(f"task {task_id[:8]} file exception: {extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -140,7 +140,7 @@ class DownloadQueue:
                 extra_msg=extra_msg
             )
         except Exception as e:
-            extra_msg = f"Unkown exception{str(e)}"
+            extra_msg = f"fail, because {str(e)}"
             print(f"task {task_id[:8]} Unkown exception：{extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -157,7 +157,8 @@ class DownloadQueue:
                 task_callback=task_callback,
                 status=TaskStatus.SUCCEEDED,
                 # url=url,
-                save_path=save_path
+                save_path=save_path,
+                extra_msg='success to download'
             )
 
         return is_success
@@ -237,7 +238,8 @@ class DownloadQueue:
             task_callback=task_callback,
             status=TaskStatus.QUEUED,
             # url=url,
-            save_path=save_path
+            save_path=save_path,
+            extra_msg='queued to download'
         )
 
         # Automatically start the download thread if not running
