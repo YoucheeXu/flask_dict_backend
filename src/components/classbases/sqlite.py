@@ -1,50 +1,89 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
-from collections.abc import Sequence, Mapping
 import sqlite3
-# from typing import Any
-from collections.abc import Generator
+import threading
+from collections.abc import Sequence, Mapping, Generator
 
-
-# Sequence/dict for parameterized queries (None = no parameters)
+# Preserve original type alias (use object instead of Any)
 SQLParameters = Sequence[object] | Mapping[str, object] | None
 
+# Thread-local storage: Each thread gets its OWN connection/cursor
+_local = threading.local()
+
 class SQLite:
+    """ Thread-safe SQLite3 wrapper.
+
+    Key changes for thread safety:
+    1. Thread-local connections/cursors (no sharing across threads)
+    2. Fresh connection per thread (never reused across threads)
+    3. Strict cleanup of thread-local resources
+    """
     def __init__(self):
-        self._conn: sqlite3.Connection | None = None
-        self._cur: sqlite3.Cursor | None = None
+        # No shared connection/cursor on instance (thread-local only)
+        self._sqlfile: str | None = None  # Native optional type (replace Optional[str])
+        self._timeout: float = 5.0  # 5s timeout for locked DB (prevents OperationalError)
 
-    # def Open(self, path: str) -> str:
-        # _this = this;
-        # return Promise((resolve, reject) => {
-            # _this.db = sqlite3.Database(path,
-                # (err: Error | null) => {
-                    # if (err) {
-                        # console.error("Open error: " + err.message);
-                        # reject("Open error: " + err.message);
-                    # }
-                    # else {
-                        # print(path + " opened");
-                        # resolve(path + " opened");
-                    # }
-                # }
-            # )
-        # })
-    # }
-    def open(self, sqlfile: str) -> tuple[int, str]:
+    # --------------------------
+    # Thread-Local Resource Helpers (Private)
+    # --------------------------
+    def _get_thread_conn(self) -> sqlite3.Connection:
+        """ Get/create thread-local connection."""
+        if not hasattr(_local, 'conn') or _local.conn is None:
+            if not self._sqlfile:
+                raise RuntimeError("Call open() first to initialize database!")
+
+            # Create NEW connection for this thread (strict thread safety)
+            _local.conn = sqlite3.connect(
+                self._sqlfile,
+                check_same_thread=True,  # Enforce SQLite's thread rule
+                timeout=self._timeout,
+                detect_types=sqlite3.PARSE_DECLTYPES
+            )
+            # Enable foreign keys (best practice)
+            _ = _local.conn.execute("PRAGMA foreign_keys = ON")
+
+        return _local.conn
+
+    def _get_thread_cursor(self) -> sqlite3.Cursor:
+        """ Get/create thread-local cursor (bound to thread's connection)."""
+        conn = self._get_thread_conn()
+        if not hasattr(_local, 'cur') or _local.cur is None:
+            _local.cur = conn.cursor()
+        return _local.cur
+
+    def _cleanup_thread_resources(self) -> None:
+        """ Close thread-local cursor/connection (safe cleanup)."""
+        if hasattr(_local, 'cur') and _local.cur:
+            try:
+                _local.cur.close()
+            except sqlite3.Error:
+                pass
+            _local.cur = None
+
+        if hasattr(_local, 'conn') and _local.conn:
+            try:
+                _local.conn.close()
+            except sqlite3.Error:
+                pass
+            _local.conn = None
+
+    def open(self, sqlfile: str) -> tuple[int, str]:  # Native tuple type (replace Tuple[int, str])
+        """ Open database (stores path, creates thread-local connection on first use)."""
         if not os.path.isfile(sqlfile):
-            return -1, f"{sqlfile} doesn't exit!"
+            return -1, f"{sqlfile} doesn't exist!"
 
-        self._conn = sqlite3.connect(sqlfile)
-        if self._conn:
-            self._cur = self._conn.cursor()
-        else:
-            return -1, f"fail to open {sqlfile}"
+        # Store file path (connection created per thread via _get_thread_conn)
+        self._sqlfile = sqlfile
 
-        return 1, sqlfile + "is OK to open!"
+        # Test connection for this thread (verify file is accessible)
+        try:
+            _ = self._get_thread_conn()
+            return 1, f"{sqlfile} is OK to open!"
+        except sqlite3.Error as e:
+            return -1, f"Failed to open {sqlfile}: {str(e)}"
 
-    def execute1(self, sql: str, params: SQLParameters = None):
+    def execute1(self, sql: str, params: SQLParameters = None) -> bool:
         """ Execute SQL with **automatic commit** (for write operations: INSERT/UPDATE/DELETE/CREATE).
 
         Ideal for single, atomic write operations that need immediate persistence. Supports
@@ -71,44 +110,51 @@ class SQLite:
             >>> db.execute1("INSERT INTO users VALUES (?, ?)", (1, "Alice"))  # True
             >>> db.execute1("INSERT INTO users VALUES (:id, :name)", {"id": 2, "name": "Bob"})  # True
         """
-        if not self._conn:
+        if not self._sqlfile:
             raise RuntimeError("Call open() first to initialize connection!")
 
+        conn = self._get_thread_conn()
+        cursor: sqlite3.Cursor | None = None  # Native optional type (replace Optional[sqlite3.Cursor])
+
         try:
-            # Create cursor, execute query, commit immediately
-            cursor = self._conn.cursor()
-            # Bind parameters (match column order)
+            cursor = conn.cursor()
+            # Execute with parameters (prevent SQL injection)
             _ = cursor.execute(sql, params if params is not None else ())
-            self._conn.commit()  # Auto-commit for immediate persistence
-            cursor.close()
-            # return bool(ret)
-            # Check if row was inserted (cursor.rowcount = 1 if inserted, 0 if skipped)
-            return cursor.rowcount == 1
+            conn.commit()  # Auto-commit for write operations
+            return cursor.rowcount == 1  # Match original return logic
 
         except sqlite3.Error as e:
-            # Rollback transaction on error to avoid partial changes
-            if self._conn:
-                self._conn.rollback()
-            raise RuntimeError(
-                f"Failed to execute {sql} with {params}"
-            ) from e
+            if conn:
+                conn.rollback()  # Rollback on error
+            raise RuntimeError(f"Failed to execute {sql} with {params}") from e
 
-    def excute(self, command: str):
-        assert self._cur is not None
-        _ = self._cur.execute(command)
+        finally:
+            if cursor:
+                cursor.close()  # Clean up cursor (critical)
 
-    def commit(self):
-        assert self._conn is not None
-        self._conn.commit()
+    def excute(self, command: str) -> None:
+        """ execute wihtout commit"""
+        if not self._sqlfile:
+            raise RuntimeError("Call open() first to initialize connection!")
 
-    def get(self, query: str):
-        assert self._cur is not None
-        # first row read
-        _ = self._cur.execute(query)
-        records = self._cur.fetchone()
-        return records
+        cursor = self._get_thread_cursor()
+        _ = cursor.execute(command)  # No commit (call commit() manually)
 
-    def each(self, query: str, params: SQLParameters = None) -> Generator[object, object, object]:
+    def commit(self) -> None:
+        """ Commit transaction"""
+        conn = self._get_thread_conn()
+        conn.commit()
+
+    def get(self, query: str) -> tuple[object, ...] | None:  # Use object instead of Any + native optional
+        """ Get first row of query result"""
+        if not self._sqlfile:
+            raise RuntimeError("Call open() first to initialize connection!")
+
+        cursor = self._get_thread_cursor()
+        _ = cursor.execute(query)
+        return cursor.fetchone()
+
+    def each(self, query: str, params: SQLParameters = None) -> Generator[tuple[object, ...], None, None]:
         """ Return a generator to iterate over **all rows** of a query result (lazy evaluation).
 
         Efficient for large result sets (does not load all rows into memory at once).
@@ -136,17 +182,43 @@ class SQLite:
             (1, 'Alice')
             (2, 'Bob')
         """
-        if not self._conn:
+        if not self._sqlfile:
             raise RuntimeError("Call open() first to initialize connection!")
 
-        # Create cursor, execute query, yield rows one at a time
-        cursor = self._conn.cursor()
-        yield from cursor.execute(query, params if params is not None else ())
-        cursor.close()  # Clean up cursor after generator is exhausted
+        conn = self._get_thread_conn()
+        cursor: sqlite3.Cursor | None = None  # Native optional type (replace Optional[sqlite3.Cursor])
+
+        try:
+            cursor = conn.cursor()
+            # Execute query with parameters
+            _ = cursor.execute(query, params if params is not None else ())
+
+            # Yield rows one at a time (lazy evaluation)
+            yield from cursor
+
+        finally:
+            if cursor:
+                cursor.close()  # Clean up cursor when generator is exhausted
 
     def close(self) -> bool:
-        if self._cur:
-            self._cur.close()
-        if self._conn:
-            self._conn.close()
+        """ Close database (clean up ALL thread-local resources) """
+        self._cleanup_thread_resources()
+        self._sqlfile = None  # Reset file path
         return True
+
+    def __del__(self):
+        """ Destructor - ensure thread-local resources are cleaned up."""
+        _ = self.close()
+
+    def enable_wal(self) -> bool:
+        """ Enable Write-Ahead Logging (improves concurrency for write-heavy workloads)."""
+        if not self._sqlfile:
+            raise RuntimeError("Call open() first!")
+
+        try:
+            conn = self._get_thread_conn()
+            _ = conn.execute("PRAGMA journal_mode = WAL")
+            conn.commit()
+            return True
+        except sqlite3.Error as e:
+            raise RuntimeError(f"Failed to enable WAL: {str(e)}") from e
