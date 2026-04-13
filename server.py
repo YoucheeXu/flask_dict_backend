@@ -24,7 +24,7 @@ def get_static_folder():
         # static_folder = os.path.dirname(os.path.abspath(sys.executable))
         static_folder = os.path.abspath("./")
     else:
-        static_folder = os.path.abspath('./public')
+        static_folder = os.path.abspath('../dist')
     print(f"static_folder = {static_folder}")
     return static_folder
 
