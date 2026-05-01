@@ -1,11 +1,6 @@
 #!/usr/bin/python3
-#-*- encoding:utf-8 -*-
-# -*- coding: utf-8 -*-
-#coding=utf-8
-''' 将文件归档到zip文件，并从zip文件中读取数据
-v1.1    every time open zip and close    
-v1.0.1    given compression format
-'''
+# -*- coding: UTF-8 -*-
+import os
 import re
 from zipfile import ZipFile, BadZipFile, LargeZipFile
 
@@ -24,8 +19,18 @@ class ZipArchive:
 
         self._file_list: list[str] = []
 
+    def _create_empty_zip_if_not_exists(self, zip_path: str):
+        zip_dir = os.path.dirname(zip_path)
+        if not os.path.exists(zip_dir):
+            os.makedirs(zip_dir)
+
+        if not os.path.exists(zip_path):
+            with ZipFile(zip_path, 'w') as _:
+                pass
+
     def open(self, zipsrc: str) -> tuple[int, str]:
         self._zipsrc = zipsrc
+        self._create_empty_zip_if_not_exists(self._zipsrc)
         try:
             with ZipFile(self._zipsrc, 'r') as zipf:
                 self._file_list = zipf.namelist()
