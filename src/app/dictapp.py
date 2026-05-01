@@ -20,7 +20,7 @@ from src.components.mdictbase import MDictBase
 from src.components.sdictbase import SDictBase
 from src.components.worddict import WordDict
 from src.components.usrprogress import WorldProgressTuple, UsrProgress
-from src.app.app_types import SvrCfgDict, UserDict
+from src.app.app_types import SvrCfgDict, UserDict, DEFAULT_SVR_CFG
 from src.utilities.download_queue import TaskStatus, DownloadCallbackKwargs
 from src.utilities.download_queue import DownloadCallback, DownloadQueue
 from src.utilities.message_sender import notify_user
@@ -58,7 +58,7 @@ class DictApp:
         self._agent_dict: dict[str, dict[str, str]] = {}
 
         self._wronghint_file: str = os.path.join(self._start_path, "audios", "WrongHint.mp3")
-        self._cfgdict: SvrCfgDict = {}
+        self._cfgdict: SvrCfgDict = DEFAULT_SVR_CFG
         self._download_queue: DownloadQueue = DownloadQueue()
         self._dictlogger: logging.Logger = logging.getLogger("Dictionary")
         self._recitelogger: logging.Logger = logging.getLogger("ReciteWords")
@@ -182,9 +182,10 @@ class DictApp:
 
     def read_configure(self, cfgfile: str) -> bool:
         self._cfgfile = cfgfile
-        with open(self._cfgfile, "r", encoding="utf-8") as f:
-            json_data = f.read()
-            self._cfgdict = json.loads(json_data)
+        if os.path.exists(self._cfgfile):
+            with open(self._cfgfile, "r", encoding="utf-8") as f:
+                json_data = f.read()
+                self._cfgdict = json.loads(json_data)
 
         debug_cfg = self._cfgdict["Dictionary"]["Debug"]
         debug_level = logging.INFO

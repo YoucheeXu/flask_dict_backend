@@ -6,7 +6,7 @@ from typing import TypedDict, NotRequired
 class DictDict(TypedDict):
     Id: int
     Name: str
-    Typ: str
+    Type: str
     Src: str
     Desc: str
     Cover: NotRequired[str]
@@ -51,7 +51,7 @@ class DebugCfg(TypedDict):
     File: str
 
 class DictionaryDict(TypedDict):
-    common: dict[str, str]
+    common: CommonInfo
     AudioBaseId: int
     Debug: DebugCfg
 
@@ -74,3 +74,109 @@ class SvrCfgDict(TypedDict):
     Miss: dict[str, str]
     Dictionary: DictionaryDict
     ReciteWords: ReciteDict
+
+
+# ------------------------------
+# Default SvrCfgDict Instance
+# ------------------------------
+DEFAULT_SVR_CFG: SvrCfgDict = {
+    "DictBases": [],
+    "AudioBases": [
+		{
+			"Id": 1,
+			"Name": "Google us",
+			"Type": "US",
+			"Desc": "US",
+            "Src": "audios/Google-us/Google-us.zip",
+			"Format": "ZIP"
+		}
+    ],
+
+    "WordDict": {
+        "Name": "Words",
+        "Src": "dicts/Words.dict",
+        "Level": []
+    },
+
+    "Users": [],
+
+    "Agents": {
+        "bIEAgent": False,
+        "ActiveAgent": "",
+        "Info": []
+    },
+
+    "Miss": {
+		"miss_dict": "logs/miss.txt",
+		"miss_audio": "logs/miss.txt"        
+    },
+
+    "Dictionary": {
+        "common": {
+            "ver": "0.0.1"            
+        },
+        "AudioBaseId": 1,
+        "Debug": {
+            "Enable": False,
+            "File": "logs/Dictionary.log"
+        }
+    },
+
+    "ReciteWords": {
+        "common": {
+            "ver": "0.0.1"
+        },
+		"General": {
+			"NewLimit": 50,
+			"TotalLimit": 200
+		},
+		"StudyMode": {
+			"LeastFamiliar": 0,
+			"GroupNum": 10
+		},
+		"TestMode": {
+			"GroupNum": 10,
+			"Times": 4
+		},
+        "TimeInterval": [
+			{
+				"Interval": 5,
+				"Unit": "m"
+			},
+			{
+				"Interval": 30,
+				"Unit": "m"
+			},
+			{
+				"Interval": 12,
+				"Unit": "h"
+			},
+			{
+				"Interval": 1,
+				"Unit": "d"
+			},
+			{
+				"Interval": 2,
+				"Unit": "d"
+			},
+			{
+				"Interval": 4,
+				"Unit": "d"
+			},
+			{
+				"Interval": 7,
+				"Unit": "d"
+			},
+			{
+				"Interval": 15,
+				"Unit": "d"
+			}
+        ],
+        "AudioBaseId": 0,
+        "DictBaseId": 0,
+        "Debug": {
+            "Enable": False,
+            "File": "logs/ReciteWords.log"
+        }
+    }
+}
