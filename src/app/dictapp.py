@@ -304,6 +304,7 @@ class DictApp:
 
         if logfile:
             # print(logFile)
+            os.makedirs(os.path.dirname(logfile), exist_ok=True)
             fh = logging.FileHandler(logfile, mode='w')
             fh.setLevel(level)
             fmt = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s: %(message)s'
