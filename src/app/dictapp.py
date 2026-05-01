@@ -202,10 +202,11 @@ class DictApp:
         agent_cfg = self._cfgdict['Agents']
         # bIEAgent = agent_cfg.bIEAgent
         agent_name = agent_cfg["ActiveAgent"]
-        agent_info = agent_cfg['Info']
-        for agent in agent_info:
-            self._agent_dict[agent["Name"]] = {"ip": agent["ip"], "program": agent["Program"]}
-        self._active_agent(agent_name)
+        if agent_name:
+            agent_info = agent_cfg['Info']
+            for agent in agent_info:
+                self._agent_dict[agent["Name"]] = {"ip": agent["ip"], "program": agent["Program"]}
+            self._active_agent(agent_name)
 
         dicts_cfg = self._cfgdict["DictBases"]
         # print(dict_cfg)
