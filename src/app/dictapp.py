@@ -431,8 +431,12 @@ class DictApp:
             # self.Info(0, 2, "", "")
             pass
 
-        level = self._wordbase.get_level(word)
-        stars = self._wordbase.get_star(word)
+        if self._wordbase.has_word(word):
+            level = self._wordbase.get_level(word)
+            stars = self._wordbase.get_star(word)
+        else:
+            level = ""
+            stars = 0
 
         return dict_url, audio_url, is_new, level, stars
 
