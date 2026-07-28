@@ -1,9 +1,8 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import os
 import sqlite3
 import threading
-from collections.abc import Sequence, Mapping, Generator
+from collections.abc import Mapping, Sequence
 
 # Preserve original type alias (use object instead of Any)
 SQLParameters = Sequence[object] | Mapping[str, object] | None
@@ -21,7 +20,7 @@ class SQLite:
     """
     def __init__(self):
         # No shared connection/cursor on instance (thread-local only)
-        self._sqlfile: str | None = None  # Native optional type (replace Optional[str])
+        self._sqlfile: str | None = None
         self._timeout: float = 5.0  # 5s timeout for locked DB (prevents OperationalError)
 
     # --------------------------
@@ -68,7 +67,7 @@ class SQLite:
                 pass
             _local.conn = None
 
-    def open(self, sqlfile: str) -> tuple[int, str]:  # Native tuple type (replace Tuple[int, str])
+    def open(self, sqlfile: str) -> tuple[int, str]:
         """ Open database (stores path, creates thread-local connection on first use)."""
         if not os.path.isfile(sqlfile):
             return -1, f"{sqlfile} doesn't exist!"
@@ -81,7 +80,7 @@ class SQLite:
             _ = self._get_thread_conn()
             return 1, f"{sqlfile} is OK to open!"
         except sqlite3.Error as e:
-            return -1, f"Failed to open {sqlfile}: {str(e)}"
+            return -1, f"Failed to open {sqlfile}: {e!s}"
 
     def execute1(self, sql: str, params: SQLParameters = None) -> bool:
         """ Execute SQL with **automatic commit** (for write operations: INSERT/UPDATE/DELETE/CREATE).
@@ -145,16 +144,20 @@ class SQLite:
         conn = self._get_thread_conn()
         conn.commit()
 
-    def get(self, query: str) -> tuple[object, ...] | None:  # Use object instead of Any + native optional
+    def get(self, query: str) -> tuple[object, ...] | None:
         """ Get first row of query result"""
         if not self._sqlfile:
             raise RuntimeError("Call open() first to initialize connection!")
 
-        cursor = self._get_thread_cursor()
-        _ = cursor.execute(query)
-        return cursor.fetchone()
+        try:
+            cursor = self._get_thread_cursor()
+            _ = cursor.execute(query)
+            return cursor.fetchone()
+        except sqlite3.Error as e:
+            print(f"fail to get with {query}, because of {e!s}")
+            return None
 
-    def each(self, query: str, params: SQLParameters = None) -> Generator[tuple[object, ...], None, None]:
+    def each(self, query: str, params: SQLParameters = None) :
         """ Return a generator to iterate over **all rows** of a query result (lazy evaluation).
 
         Efficient for large result sets (does not load all rows into memory at once).
@@ -168,7 +171,7 @@ class SQLite:
                 - None: Indicates a query without parameters
 
         Yields:
-            tuple[object, ...]: Each row of the query result as a tuple.
+            Generator[tuple[object, ...], None, None]: Each row of the query result as a tuple.
 
         Raises:
             RuntimeError: If called before open() (no active database connection).
@@ -221,4 +224,4 @@ class SQLite:
             conn.commit()
             return True
         except sqlite3.Error as e:
-            raise RuntimeError(f"Failed to enable WAL: {str(e)}") from e
+            raise RuntimeError(f"Failed to enable WAL: {e!s}") from e
