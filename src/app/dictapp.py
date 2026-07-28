@@ -174,9 +174,9 @@ class DictApp:
         ret, msg = dictbase.open(name, dictsrc)
 
         if ret == 1:
-            self._dictlogger.info(f"success to Open {dictsrc}")
+            self._dictlogger.info(f"Success to Open {dictsrc}")
         else:
-            self._dictlogger.error(f"fail to Open {name}, due to {msg}")
+            self._dictlogger.error(f"Fail to Open {name}, due to {msg}")
 
         return dictbase
 
@@ -229,7 +229,7 @@ class DictApp:
             if ret != 1:
                 self._dictlogger.error(f"Fail to open {audio_src}, because of {msg}")
             else:
-                self._dictlogger.info(f"success to open {audio_src}")
+                self._dictlogger.info(f"Success to open {audio_src}")
 
             # if "Download" in audio_cfg:
                 # self._audiobase.download = audio_cfg["Download"]
@@ -449,7 +449,7 @@ class DictApp:
         if status == TaskStatus.SUCCEEDED:
             save_path = kwargs['save_path']
             ret, msg = db.check_addword(save_path)
-            ret_msg = f"{'fail:' if ret <=0 else 'Success'}: {msg}"
+            ret_msg = f"{'Fail' if ret <=0 else 'Success'}: {msg}"
             # print(ret_msg)
             _ = notify_user(self._user_name, ret_msg)
             os.remove(save_path)

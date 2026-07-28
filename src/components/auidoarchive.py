@@ -61,9 +61,9 @@ class AuidoArchive(DictBase):
             with open(localfile, "rb") as f:
                 wordmp3 = f.read()
                 _ = self._audiozip.add_file(filename, wordmp3)
-                return 1, f"OK to add '{word}' to {self._name}"
+                return 1, f"OK to add '{basename}' to {self._name}.zip"
         else:
-            return -1, f"Fail to add '{word}' to {self._name}"
+            return -1, f"Fail to add '{basename}' to {self._name}.zip"
 
     @override
     def get_wordlist(self, word: str, limit: int = 100) -> list[str]:

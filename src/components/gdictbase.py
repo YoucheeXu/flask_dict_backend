@@ -305,7 +305,7 @@ class GDictBase(DictBase):
         # info_fixed = regex.sub(r"\\\\", info)
         # dict = info_fixed
         # info = str(info).replace(/\\x/g, "\\u00")
-        jsonstr =  json_str.replace("\\x", "\\u00")
+        jsonstr = json_str.replace("\\x", "\\u00")
         obj = json.loads(jsonstr, strict = True)
         tabalign = '\t\t'
         dictdata = self._process_primary(tabalign, obj["primaries"])
@@ -344,9 +344,8 @@ class GDictBase(DictBase):
                 if inword != "":
                     if inword == word:
                         _ = self._dictzip.add_file(filename, dictjson)
-                        return 1, f"OK to add '{word}' to {self._name}"
-                    return 0, f"expected word: {word}, inword: {inword}"
-
+                        return 1, f"OK to add '{basename}' to {self._name}.zip"
+                    return 0, f"expected word '{word}', inword '{inword}'"
                 return -1, f"No valid data in {localfile}"
 
         return -1, f"No file {localfile}"
