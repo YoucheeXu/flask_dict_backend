@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import os
 import re
-from typing import cast
 from collections.abc import Generator
+from typing import cast
 
 from src.components.classbases.sqlite import SQLite
 
@@ -26,7 +27,26 @@ class WordDict:
     def open(self, dictname: str, dictsrc: str) -> tuple[int, str]:
         self._dictname = dictname
         self._dictsrc = dictsrc
-        return self._database.open(self._dictsrc)
+        if os.path.isfile(self._dictsrc):
+            return self._database.open(self._dictsrc)
+        else:
+            ret, reason = self._database.open(self._dictsrc)
+            if ret:
+                ret2 = self._database.execute1(
+                    """CREATE TABLE [Words](
+                        [Word] CHAR(255) CONSTRAINT [PrimaryKey] PRIMARY KEY,
+                        [USSymbol] CHAR(255),
+                        [UKSymbol] CHAR(255),
+                        [Level] CHAR(255),
+                        [Stars] TINYINT
+                    )"""
+                )
+                if ret2 == -1:
+                    return True, f"OK to new {self._dictsrc}"
+                else:
+                    return False, f"Fail to new {self._dictsrc}"
+            else:
+                return ret, reason
 
     def has_word(self, word: str) -> bool:
         """Checks if a specific word exists in the SQLite Words table.
@@ -140,7 +160,7 @@ class WordDict:
         return self._database.execute1(
             insert_query,
             (word.strip(), us_symbol, uk_symbol, level, stars)
-        )
+        ) == 1
 
     def _parse_filter_string(self, filter_str: str) -> tuple[set[str], set[str]]:
         """
@@ -189,22 +209,19 @@ class WordDict:
         include_set, exclude_set = self._parse_filter_string(filter_str)
 
         # Step 2: Parse target string into a set of levels (unlimited quantity)
-        target_levels = set(level.strip().upper() for level in levels_str.split(';') if level.strip())
+        # target_levels = set(level.strip().upper() for level in levels_str.split(';') if level.strip())
+        target_levels = {level.strip().upper() for level in levels_str.split(';') if level.strip()}
 
         # Step 3: Match rules (supports unlimited levels in both sets)
         # Rule 1: All include levels MUST be present (if include_set is not empty)
         if include_set and not include_set.issubset(target_levels):
             return False
 
-        # Rule 2: All exclude levels MUST be absent
-        if not exclude_set.isdisjoint(target_levels):
-            return False
-
-        # Rule 3: If include_set is empty (e.g., filter '-CET6'), match if no exclude levels
-        return True
+        # Rule 2: All exclude levels MUST be absent, If include_set is empty (e.g., filter '-CET6'), match if no exclude levels
+        return exclude_set.isdisjoint(target_levels)
 
     def each_word(self, target_level: str) -> Generator[str, object, object]:
-        for word, levels in cast(Generator[tuple[str, str], None, None],
+        for word, levels in cast(Generator[tuple[str, str]],
                 self._database.each('select Word, Level from Words')):
             if self.is_target_match(target_level, levels):
                 yield from word
@@ -232,7 +249,7 @@ class WordDict:
         sql += f" where Word='{word}'"
         print(sql)
 
-        return self._database.execute1(sql)
+        return self._database.execute1(sql) == 1
 
     def update_level(self, word: str, level: str) -> bool:
         return self._update_item(word, "Level", level)
@@ -247,9 +264,9 @@ class WordDict:
             level_list.append(level)
             print(f"level_list = {level_list}")
             level_set: set[str] = set()
-            for level in level_list:
-                if level:
-                    level_set.add(level)
+            for lvl in level_list:
+                if lvl:
+                    level_set.add(lvl)
             new_lvls = ";".join(level_set)
             _ = self.update_level(word, new_lvls)
         else:

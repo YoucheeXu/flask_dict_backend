@@ -1,7 +1,12 @@
 """Utility file to send messages to users via SocketIOService."""
 import time
-from src.services.socket_service import UserId, RoomId, MessagePayload
-from src.services.socket_service import socket_service   # Import the singleton SocketIOService
+
+from src.services.socket_service import (
+    MessagePayload,
+    RoomId,
+    UserId,
+    socket_service,  # Import the singleton SocketIOService
+)
 
 
 def notify_user(

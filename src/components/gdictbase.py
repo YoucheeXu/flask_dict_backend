@@ -1,14 +1,10 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 ''' Dictbase for google
 '''
-import os
 import json
-from html import unescape
-import codecs
-import re
+import os
 import zipfile
-from typing import override, Any
+from typing import Any, cast, override
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.ziparchive import ZipArchive
@@ -113,9 +109,9 @@ class GDictBase(DictBase):
         # print("%s = %s" %(word, dict))
 
         if dictjson:
-            dictdata: dict[str, Any] = json.loads(dictjson, strict=False)
+            dictdata = cast(dict[str, object], json.loads(dictjson, strict=False))
             if dictdata["ok"]:
-                info = dictdata["info"]
+                info = cast(str,dictdata["info"])
                 ret = self._parse_json(info, htmlfile)
                 # print("%s = %s" %(word, dict))
                 if ret:
@@ -130,10 +126,10 @@ class GDictBase(DictBase):
 
     def _get_inword(self, dictjson: str) -> str:
 
-        data: dict[str, Any] = json.loads(dictjson, strict = False)
+        data = cast(dict[str, object], json.loads(dictjson, strict=False))
 
         if data["ok"]:
-            info: str = data["info"]
+            info: str = cast(str, data["info"])
             # print(info)
             # GetApp().log("info", info)
             # regex = re.compile(r'\\(?![/u"])')
@@ -143,7 +139,7 @@ class GDictBase(DictBase):
             # info = info.replace('\\"', '"')
             # info = info.replace('/', '')
             info = info.replace('\\', '\\\\')
-            data = json.loads(info, strict = True)
+            data = json.loads(info, strict=True)
             return data["primaries"][0]["terms"][0]["text"]
 
         return ""
@@ -334,6 +330,9 @@ class GDictBase(DictBase):
         basename = os.path.basename(localfile)
         word, _ = os.path.splitext(basename)
         filename = word[0].lower() + "/" + word + ".json"
+
+        if self._dictzip.has_file(filename):
+            return 0, f"The '{basename}' already exists in the '{self._name}.zip'."
         if os.path.isfile(localfile):
             with open(localfile, "r", encoding="utf-8") as f:
                 dictjson = f.read()

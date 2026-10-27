@@ -1,8 +1,6 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 from collections.abc import Generator
-from typing import NamedTuple
-from typing import override, cast
+from typing import NamedTuple, cast, override
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.sqlite import SQLite
@@ -73,7 +71,7 @@ class SDictBase(DictBase):
         word_list: list[str] = []
         where = "word like '" + word + "%'"
         query = "select word from Words where " + where + f"Limit {limit}"
-        for row in cast(Generator[str, None, None], self._dictbase.each(query)):
+        for row in cast(Generator[str], self._dictbase.each(query)):
             # print(f"row = {row}")
             word_list.append(row[0])
         return word_list

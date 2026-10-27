@@ -1,28 +1,31 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import os
-import sys
-from pathlib import Path
 import datetime
-from enum import IntEnum, auto
-import random
 import json
 import logging
+import os
+import random
+import sys
+from enum import IntEnum, auto
 from functools import partial
-from typing import TypedDict
-from typing import cast, Unpack
+from pathlib import Path
+from typing import TypedDict, Unpack, cast
 
-from src.logit import pv, po, pe
-from src.components.classbases.dictbase import DictBase
+from src.app.app_types import DEFAULT_SVR_CFG, SvrCfgDict, UserDict
 from src.components.auidoarchive import AuidoArchive
+from src.components.classbases.dictbase import DictBase
 from src.components.gdictbase import GDictBase
 from src.components.mdictbase import MDictBase
 from src.components.sdictbase import SDictBase
+from src.components.usrprogress import UsrProgress, WorldProgressTuple
 from src.components.worddict import WordDict
-from src.components.usrprogress import WorldProgressTuple, UsrProgress
-from src.app.app_types import SvrCfgDict, UserDict, DEFAULT_SVR_CFG
-from src.utilities.download_queue import TaskStatus, DownloadCallbackKwargs
-from src.utilities.download_queue import DownloadCallback, DownloadQueue
+from src.logit import po
+from src.utilities.download_queue import (
+    DownloadCallback,
+    DownloadCallbackKwargs,
+    DownloadQueue,
+    TaskStatus,
+)
 from src.utilities.message_sender import notify_user
 
 
@@ -405,12 +408,11 @@ class DictApp:
             #         is_new = False
             pass
 
-        audioname = self._audiobase.name
+        # audioname = self._audiobase.name
         if ret_audio < 0:
             self._record2file(self._missaudio_file,
                 "Audio of " + word + ": " + audio_url + "\n")
-            self._dictlogger.info((f"there is no audio '{audio_url}' of '{word}' in archive "
-                f"'{self._audiobase.name}'"))
+            self._dictlogger.info(audio_url)
         elif ret_audio == 0:
             if self._audiobase.download is not None:
                 print(f"Going to download: {audio_url}")

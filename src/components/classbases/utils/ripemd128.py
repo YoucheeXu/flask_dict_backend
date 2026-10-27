@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 """ A simple ripemd128 library in pure Python
 Copyright by https://github.com/zhansliu/writemdict
 
@@ -67,13 +66,13 @@ def pad_split(message: bytes):
     message += b"\x00" * (pad_len - 1)
     # ending with check bits (= little endian 64-bit int, 8 * data.length)
     end = struct.pack("<Q", origlen * 8)
-    end_text = ''.join(map(lambda x:(',0x' if len(hex(x))>=4 else ',0x0') + hex(x)[2:], end))
+    # end_text = ''.join(map(lambda x:(',0x' if len(hex(x))>=4 else ',0x0') + hex(x)[2:], end))
     # print('End of Msg =', end_text)
     message += end
     msg_len = len(message)
     # print('Len of Msg after padding =', msg_len)
     # msg_text = ''.join(map(lambda x:(',0x' if len(hex(x))>=4 else ',0x0') + hex(x)[2:], message))
-    msg_text = ''.join(map(lambda x:(',') + str(x), message))
+    # msg_text = ''.join(map(lambda x:(',') + str(x), message))
     # print('msg after padding = ', msg_text)
     assert msg_len % 64 == 0
     return [
@@ -162,4 +161,5 @@ def ripemd128(message: bytes):
 
 
 def hexstr(bstr: bytes) -> str:
-    return "".join("{0:02x}".format(b) for b in bstr)
+    # return "".join("{0:02x}".format(b) for b in bstr)
+    return "".join(f"{b:02x}" for b in bstr)

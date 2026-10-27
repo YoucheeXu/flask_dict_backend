@@ -1,10 +1,9 @@
 #!/usr/bin/python3
-import os
 import sqlite3
 import threading
 from collections.abc import Mapping, Sequence
 
-# Preserve original type alias (use object instead of Any)
+# Preserve original type alias
 SQLParameters = Sequence[object] | Mapping[str, object] | None
 
 # Thread-local storage: Each thread gets its OWN connection/cursor
@@ -23,9 +22,6 @@ class SQLite:
         self._sqlfile: str | None = None
         self._timeout: float = 5.0  # 5s timeout for locked DB (prevents OperationalError)
 
-    # --------------------------
-    # Thread-Local Resource Helpers (Private)
-    # --------------------------
     def _get_thread_conn(self) -> sqlite3.Connection:
         """ Get/create thread-local connection."""
         if not hasattr(_local, 'conn') or _local.conn is None:
@@ -69,8 +65,8 @@ class SQLite:
 
     def open(self, sqlfile: str) -> tuple[int, str]:
         """ Open database (stores path, creates thread-local connection on first use)."""
-        if not os.path.isfile(sqlfile):
-            return -1, f"{sqlfile} doesn't exist!"
+        # if not os.path.isfile(sqlfile):
+            # return -1, f"{sqlfile} doesn't exist!"
 
         # Store file path (connection created per thread via _get_thread_conn)
         self._sqlfile = sqlfile
@@ -82,7 +78,7 @@ class SQLite:
         except sqlite3.Error as e:
             return -1, f"Failed to open {sqlfile}: {e!s}"
 
-    def execute1(self, sql: str, params: SQLParameters = None) -> bool:
+    def execute1(self, sql: str, params: SQLParameters = None):
         """ Execute SQL with **automatic commit** (for write operations: INSERT/UPDATE/DELETE/CREATE).
 
         Ideal for single, atomic write operations that need immediate persistence. Supports
@@ -120,17 +116,16 @@ class SQLite:
             # Execute with parameters (prevent SQL injection)
             _ = cursor.execute(sql, params if params is not None else ())
             conn.commit()  # Auto-commit for write operations
-            return cursor.rowcount == 1  # Match original return logic
-
+            # return cursor.rowcount == 1  # Match original return logic
+            return cursor.rowcount
         except sqlite3.Error as e:
             if conn:
                 conn.rollback()  # Rollback on error
             raise RuntimeError(f"Failed to execute {sql} with {params}") from e
-
         finally:
             if cursor:
                 cursor.close()  # Clean up cursor (critical)
-
+  
     def excute(self, command: str) -> None:
         """ execute wihtout commit"""
         if not self._sqlfile:

@@ -1,9 +1,7 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import os
 
 from src.app.dictapp import DictApp
-
 
 # Singleton instance of DictApp
 _dict_app_instance = None
@@ -23,7 +21,10 @@ def get_dict_app(proj_path: str) -> DictApp:
 
     cfgfile = os.path.join(proj_path, "server.json")
     dict_app = DictApp(proj_path)
-    _ = dict_app.read_configure(cfgfile)
-    print(f"DictApp initialized successfully: {cfgfile}")
+    ret = dict_app.read_configure(cfgfile)
+    if ret:
+        print(f"DictApp initialized successfully: {cfgfile}")
+    else:
+        print(f"There is no cfg file: {cfgfile}")
     _dict_app_instance = dict_app  # Cache the singleton instance
     return dict_app

@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import os
 from typing import override
 
@@ -57,6 +56,8 @@ class AuidoArchive(DictBase):
         basename = os.path.basename(localfile)
         word, _ = os.path.splitext(basename)
         filename = word[0].lower() + "/" + word + ".mp3"
+        if self._audiozip.has_file(filename):
+            return 0, f"The '{basename}' already exists in the '{self._name}.zip'."
         if os.path.isfile(localfile):
             with open(localfile, "rb") as f:
                 wordmp3 = f.read()

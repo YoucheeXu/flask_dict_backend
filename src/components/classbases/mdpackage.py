@@ -7,9 +7,8 @@ https://github.com/csarron/mdict-analysis
 """
 import re
 import struct
-from io import BytesIO, BufferedIOBase
-# zlib compression is used for engine version >=2.0
-import zlib
+import zlib  # zlib compression is used for engine version >=2.0
+from io import BufferedIOBase, BytesIO
 from typing import cast
 
 # pip install python3-lzo-indexer
@@ -26,8 +25,8 @@ except ImportError:
 # except ImportError:
 import xml.etree.ElementTree as ET
 
-from src.components.classbases.utils.ripemd128 import ripemd128
 from src.components.classbases.utils.pureSalsa20 import Salsa20
+from src.components.classbases.utils.ripemd128 import ripemd128
 
 
 class MdPackage:
@@ -61,7 +60,7 @@ class MdPackage:
         self._srcfile: str = srcfile
         self._is_mdd: bool = is_mdd
         self._encoding: str = encoding.upper()
-        self._passcode = passcode
+        self._passcode: tuple[bytes, str] | None = passcode
 
     def open(self):
         print(f"open {self._srcfile}")
@@ -96,7 +95,7 @@ class MdPackage:
             # 4 bytes indicates block compression type
             recordblock_type = recordblock_compressed[:4]
             # 4 bytes adler checksum in uncompressed content
-            adler32 = cast(int, struct.unpack('>I', recordblock_compressed[4:8])[0])
+            adler32 = struct.unpack('>I', recordblock_compressed[4:8])[0]
             # print(f"adler32: {adler32}")
 
             # record_block: Buffer
@@ -146,7 +145,7 @@ class MdPackage:
             headersize_bytes = f.read(4)
             # print(f"sizeOfHeaderRaw = {headersize_bytes.join()}")
 
-            header_size = cast(int, struct.unpack(">I", headersize_bytes)[0])
+            header_size = struct.unpack(">I", headersize_bytes)[0]
             # print(f"header_size = {header_size}")
 
             header_bytes = f.read(header_size)
@@ -154,7 +153,7 @@ class MdPackage:
             # 4 bytes: adler32 checksum in header, in little endian
             adler32_bytes = f.read(4)
             # print(f"adler32Raw = { adler32_bytes.join() }")
-            adler32 = cast(int, struct.unpack("<I", adler32_bytes)[0])
+            adler32 = struct.unpack("<I", adler32_bytes)[0]
             # print(f"adler32 = { adler32 }")
             assert adler32 == zlib.adler32(header_bytes) & 0xffffffff
             # mark down key block offset
@@ -290,7 +289,7 @@ class MdPackage:
 
             # 4 bytes: adler checksum in previous 5 numbers
             if self._version >= 2.0:
-                adler32 = cast(int, struct.unpack('>I', f.read(4))[0])
+                adler32 = struct.unpack('>I', f.read(4))[0]
                 # print(f"adler checksum in previous 5 ints = {adler32}")
                 assert adler32 == zlib.adler32(block) & 0xffffffff
 
@@ -354,7 +353,7 @@ class MdPackage:
             # print(f"keyblock_info = {keyblock_info}")
 
             # adler checksum
-            adler32 = cast(int, struct.unpack('>I', keyblockinfo_compressed[4:8])[0])
+            adler32 = struct.unpack('>I', keyblockinfo_compressed[4:8])[0]
             # print(f"adler32 in keyblock_info = {adler32}")
             assert adler32 == zlib.adler32(keyblock_info) & 0xffffffff
         else:
@@ -434,7 +433,7 @@ class MdPackage:
             previous = b[i]
             b[i] = t
         bb = bytes(b)
-        bbb = ''.join(map(lambda x:(',') + str(x), bb))
+        # bbb = ''.join(map(lambda x:(',') + str(x), bb))
         # print('FastDecrypt =', bbb)
         return bb
 
@@ -445,7 +444,7 @@ class MdPackage:
         # print('msg =', str(msg))
         key = ripemd128(msg + tail)
         # key_text = ''.join(map(lambda x:(',0x' if len(hex(x))>=4 else ',0x0') + hex(x)[2:], key))
-        key_text = ''.join(map(lambda x:(',') + str(x), key))
+        # key_text = ''.join(map(lambda x:(',') + str(x), key))
         # print('Key of compBlock =', key_text)
         return comp_block[0:8] + self._fast_decrypt(comp_block[8:], key)
 
@@ -461,7 +460,7 @@ class MdPackage:
             # print(f"keyBlockTypeStr: {keyBlockTypeStr}")
 
             # 4 bytes : adler checksum in decompressed key block
-            adler32 = cast(int, struct.unpack('>I', keyblock_compressed[start+4:start+8])[0])
+            adler32 = struct.unpack('>I', keyblock_compressed[start+4:start+8])[0]
 
             # print(f"strt: {start}, end: {end}")
             key_block = self._decompress(keyblock_type,
@@ -539,7 +538,7 @@ class MdPackage:
                 # 4 bytes: compression type
                 recordblock_type = recordblock_compressed[:4]
                 # 4 bytes: adler32 checksum in decompressed record block
-                adler32 = cast(int, struct.unpack('>I', recordblock_compressed[4:8])[0])
+                adler32 = struct.unpack('>I', recordblock_compressed[4:8])[0]
 
                 # recordBlockTypeStr = recordblock_type.join()
                 record_block = self._decompress(recordblock_type,
@@ -613,7 +612,7 @@ class MdPackage:
                 # 4 bytes indicates block compression type
                 recordblock_type = recordblock_compressed[: 4]
                 # 4 bytes adler checksum in uncompressed content
-                adler32 = cast(int, struct.unpack('>I', recordblock_compressed[4:8])[0])
+                adler32 = struct.unpack('>I', recordblock_compressed[4:8])[0]
 
                 record_block = self._decompress(recordblock_type,
                     recordblock_compressed, decompressed_size)

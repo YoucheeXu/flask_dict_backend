@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import sys
-import re
 import inspect
+import re
+import sys
 import time
 from enum import IntEnum
 from functools import wraps

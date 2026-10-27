@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 """
     Copyright by https://github.com/zhansliu/writemdict
 
@@ -171,7 +170,7 @@
 """
 import sys
 from struct import Struct
-
+from typing import cast
 
 assert sys.version_info >= (2, 6)
 
@@ -192,7 +191,7 @@ little2_i32 = Struct("<2i")    #  2 little-endian 32-bit signed ints.
 _version = 'p4.0'
 
 
-class Salsa20():
+class Salsa20:
     '''Salsa20 class which emulates pySalsa20.Salsa20
     '''
     def __init__(self, key: bytes | None = None, iv: bytes | None = None, rounds: int = 20):
@@ -220,7 +219,7 @@ class Salsa20():
             ctx[ 1],ctx[ 2],ctx[ 3],ctx[ 4] = little4_i32.unpack(key[0:16])
             ctx[11],ctx[12],ctx[13],ctx[14] = little4_i32.unpack(key[0:16])
         else:
-            raise Exception("key length isn't 32 or 16 bytes.")
+            raise KeyError("key length isn't 32 or 16 bytes.")
         ctx[0],ctx[5],ctx[10],ctx[15] = little4_i32.unpack(constants)
 
     def set_iv(self, iv: bytes):
@@ -240,7 +239,7 @@ class Salsa20():
         ctx[ 8], ctx[ 9] = little2_i32.unpack(little_u64.pack(counter))
 
     def get_counter(self) -> int:
-        return little_u64.unpack(little2_i32.pack(*self.ctx[8: 10]))[0]
+        return cast(int, little_u64.unpack(little2_i32.pack(*self.ctx[8: 10]))[0])
 
     def set_rounds(self, rounds: int, testing: bool = False):
         assert testing or rounds in [8, 12, 20] # rounds must be 8, 12, 20

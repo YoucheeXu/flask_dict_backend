@@ -6,16 +6,16 @@ import sys
 from flask import Flask
 from flask_cors import CORS
 
-from src.services.socket_service import socketio
-# from src.services.socket_service import socket_service
 from src.dictapi import DictApi
-from src.reciteapi import ReciteApi
 from src.fileapi import FileApi
+from src.reciteapi import ReciteApi
+from src.services.socket_service import socketio
+
 # from src.utilities.message_sender import start_periodic_user_push, start_periodic_room_push
 
 
 def get_static_folder():
-    """_summary_
+    """ _summary_
 
     Returns:
         _type_: _description_
@@ -30,7 +30,7 @@ def get_static_folder():
 
 
 def create_server():
-    """_summary_
+    """ _summary_
     """
     app = Flask(__name__, static_folder=get_static_folder(), static_url_path='')
     app.config['SECRET_KEY'] = 'dict-key-2026'  # Replace with os.getenv("SECRET_KEY") in production
@@ -113,8 +113,8 @@ def create_server():
 
     socketio.run(
         app,
-        host='0.0.0.0',          # 
-        port=5000,               # 
+        host='0.0.0.0',          # ip
+        port=5000,               # port
         debug=False,             # Disable debug (critical for SocketIO)
         use_reloader=False,      # Disable reloader (prevents duplicate processes)
     )

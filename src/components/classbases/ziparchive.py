@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import re
-from zipfile import ZipFile, BadZipFile, LargeZipFile
+from zipfile import BadZipFile, LargeZipFile, ZipFile
 
 
 class ZipArchive:

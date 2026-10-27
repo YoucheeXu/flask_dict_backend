@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import requests
-import threading
 import queue
+import threading
 import uuid
+from enum import IntEnum, auto
 from pathlib import Path
 from time import sleep
-from enum import auto, IntEnum
-from typing import TypedDict, Protocol, Unpack
+from typing import Protocol, TypedDict, Unpack
+
+import requests
+
 
 class TaskStatus(IntEnum):
     QUEUED = auto()     # "queued", added to queue but not started
@@ -118,7 +120,7 @@ class DownloadQueue:
             is_success = True
 
         except requests.RequestException as e:
-            extra_msg = f"fail to download, because{str(e)}"
+            extra_msg = f"fail to download, because{e!s}"
             print(f"task {task_id[:8]} download exception：{extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -129,7 +131,7 @@ class DownloadQueue:
                 extra_msg=extra_msg
             )
         except OSError as e:
-            extra_msg = f"fail to operate file, because {str(e)}"
+            extra_msg = f"fail to operate file, because {e!s}"
             print(f"task {task_id[:8]} file exception: {extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -140,7 +142,7 @@ class DownloadQueue:
                 extra_msg=extra_msg
             )
         except Exception as e:
-            extra_msg = f"fail, because {str(e)}"
+            extra_msg = f"fail, because {e!s}"
             print(f"task {task_id[:8]} Unkown exception：{extra_msg}")
             self._trigger_task_callback(
                 task_id,
@@ -186,7 +188,7 @@ class DownloadQueue:
                 continue
             except Exception as e:
                 # Catch unexpected exceptions to prevent thread crash
-                print(f"Unexpected error in download worker: {str(e)}")
+                print(f"Unexpected error in download worker: {e!s}")
                 continue
 
     def _trigger_task_callback(self, task_id: str, *,
@@ -203,7 +205,7 @@ class DownloadQueue:
                 task_callback(**kwargs)
             except Exception as e:
                 # Catch callback execution errors to avoid affecting download process
-                print(f"Error executing callback for task {task_id}: {str(e)}")
+                print(f"Error executing callback for task {task_id}: {e!s}")
 
     def add_task(self, url: str, save_path: str,
             task_callback: DownloadCallback | None = None) -> str:
@@ -338,7 +340,7 @@ if __name__ == "__main__":
         print(f"\n{emoji} PDF Task {kwargs['status'].name.upper()}")
         # print(f"   URL: {kwargs['url']}")
         # print(f"   Save Path: {kwargs['save_path']}")
-        if "extra_msg" in kwargs and kwargs["extra_msg"]:
+        if kwargs.get("extra_msg"):
             print(f"   Error: {kwargs["extra_msg"]}")
 
     # Example 2: Callback function for image files
@@ -378,23 +380,23 @@ if __name__ == "__main__":
         url="https://example.com/invalid_file.zip",
         save_path="./downloads/invalid.zip",
         # task_callback=lambda **kwargs:print((f"\n\tError Task [{kwargs['task_id']}]"
-        task_callback=lambda **kwargs: print((f"\n\tError Task "
-            f"{kwargs['status'].name}: {kwargs.get('extra_msg', 'No error')}"))
+        task_callback=lambda **kwargs: print("\n\tError Task " +
+            f"{kwargs['status'].name}: {kwargs.get('extra_msg', 'No error')}")
     )
 
     task4_id = download_manager.add_task(
         url="https://dictionary.so8848.com/ajax_search/?q=good",
         save_path="good.json",
-        task_callback=lambda **kwargs: print((f"\n️  Task "
-            f"{kwargs['status'].name}: {kwargs.get('extra_msg', 'No error')}"))
+        task_callback=lambda **kwargs: print("\n️  Task " +
+            f"{kwargs['status'].name}: {kwargs.get('extra_msg', 'No error')}")
     )
 
     # Wait for all tasks to complete (via PUBLIC method)
     try:
         print("\n=== Waiting for all tasks to complete ===")
         download_manager.wait_for_completion()
-        print((f"\n📊 All tasks processed! Pending tasks remaining: "
-            f"{download_manager.get_queue_size()}"))
+        print("\n📊 All tasks processed! Pending tasks remaining: " +
+            f"{download_manager.get_queue_size()}")
     except KeyboardInterrupt:
         # Stop queue via PUBLIC stop() method
         download_manager.stop()

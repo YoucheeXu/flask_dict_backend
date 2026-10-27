@@ -1,11 +1,11 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import abc
+import json
 import os
 import shutil
 import time
-import json
 from typing import TypedDict, cast
+
 
 class DownloadCfgDict(TypedDict):
     Mode: str

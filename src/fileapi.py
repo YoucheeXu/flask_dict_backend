@@ -1,15 +1,11 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import os
 import tempfile
 from typing import cast
 
-from flask import request, Response, current_app
-from flask import jsonify
-from flask import send_from_directory
+from flask import Response, current_app, jsonify, request, send_from_directory
 from flask.views import MethodView
 
-from src.logit import pv, po, pe
 from src.app.dictapp import DictApp
 from src.app_factory import get_dict_app
 
@@ -163,7 +159,7 @@ class FileApi(MethodView):
             # Catch all exceptions (e.g., add_file() errors, file I/O issues)
             return jsonify({
                 'code': 500,
-                'msg': f'File processing failed: {str(e)}',
+                'msg': f'File processing failed: {e!s}',
                 'data': None
             }), 500
 
@@ -193,7 +189,6 @@ class FileApi(MethodView):
         }
 
     def patch(self, book_id):
-        '''
-            partly update
+        ''' partly update
         '''
         pass

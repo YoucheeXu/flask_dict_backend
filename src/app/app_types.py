@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-# from dataclasses import dataclass
-from typing import TypedDict, NotRequired
+from typing import NotRequired, TypedDict
+
 
 class DictDict(TypedDict):
     Id: int
@@ -80,7 +80,16 @@ class SvrCfgDict(TypedDict):
 # Default SvrCfgDict Instance
 # ------------------------------
 DEFAULT_SVR_CFG: SvrCfgDict = {
-    "DictBases": [],
+    "DictBases": [
+		{
+			"Id": 1,
+			"Name": "Google",
+			"Type": "ENG2CHS",
+			"Desc": "Google",
+			"Src": "dicts/Google/Google.zip",
+			"Format": "ZIP"
+		}
+    ],
     "AudioBases": [
 		{
 			"Id": 1,
@@ -172,8 +181,8 @@ DEFAULT_SVR_CFG: SvrCfgDict = {
 				"Unit": "d"
 			}
         ],
-        "AudioBaseId": 0,
-        "DictBaseId": 0,
+        "AudioBaseId": 1,
+        "DictBaseId": 1,
         "Debug": {
             "Enable": False,
             "File": "logs/ReciteWords.log"

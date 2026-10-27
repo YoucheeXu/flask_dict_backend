@@ -1,11 +1,10 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import datetime
-from typing import NamedTuple
-from typing import cast
 from collections.abc import Generator
+from typing import NamedTuple, cast
 
 from src.components.classbases.sqlite import SQLite
+
 
 class WorldProgressSqlTuple(NamedTuple):
     word: str
@@ -21,7 +20,7 @@ class WorldProgressTuple(NamedTuple):
     nextdate: datetime.date | None
 
 
-class UsrProgress():
+class UsrProgress:
     '''
         CREATE TABLE [CET6](
             [Word] TEXT PRIMARY KEY NOT NULL, 
@@ -152,8 +151,8 @@ class UsrProgress():
         return self.new_table(lvl)
 
     def new_table(self, lvl: str) -> bool:
-        r = self._database.execute1((f"CREATE TABLE {lvl}(Word text NOT NULL PRIMARY KEY, "
-            f"Familiar REAL, LastDate datetime.date, NextDate datetime.date)"))
+        r = self._database.execute1(f"CREATE TABLE {lvl}(Word text NOT NULL PRIMARY KEY, " +
+            "Familiar REAL, LastDate datetime.date, NextDate datetime.date)")
         if r:
             self._level = lvl
             print("Table created")
@@ -201,7 +200,7 @@ class UsrProgress():
     def _each2wordlist(self, sql: str):
         word_list: list[WorldProgressTuple] = []
         for word, familiar, lastdatestr, nextdatestr in \
-                cast(Generator[WorldProgressSqlTuple, None, None], self._database.each(sql)):
+                cast(Generator[WorldProgressSqlTuple], self._database.each(sql)):
             lastdate = self._str2date(lastdatestr)
             nextdate = self._str2date(nextdatestr)
             word = WorldProgressTuple(word, familiar, lastdate, nextdate)
@@ -257,20 +256,20 @@ class UsrProgress():
     def get_ovrduewordlst(self, due: datetime.date):
         familiar = 10
         table = self._level
-        sql = f"select * from {table} where NextDate < date('{due}') and cast (Familiar as real) < {str(familiar)}"
+        sql = f"select * from {table} where NextDate < date('{due}') and cast (Familiar as real) < {familiar!s}"
         return self._each2wordlist(sql)
 
     def get_duewordlst(self, due: datetime.date):
         familiar = 10
         table = self._level
-        sql = f"select * from {table} where NextDate = date('{due}') and cast (Familiar as real) < {str(familiar)}"
+        sql = f"select * from {table} where NextDate = date('{due}') and cast (Familiar as real) < {familiar!s}"
         return self._each2wordlist(sql)
 
     def get_newwordlst(self, limit: int):
         familiar = 0
         table = self._level
 
-        sql = f"select * from {table} where LastDate is null and cast (Familiar as real) = {str(familiar)}"
+        sql = f"select * from {table} where LastDate is null and cast (Familiar as real) = {familiar!s}"
         sql += " limit " + str(limit)
         return self._each2wordlist(sql)
 

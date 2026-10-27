@@ -1,14 +1,10 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import os
 from typing import cast
 
-from flask import request, Response, current_app
-from flask import jsonify
+from flask import current_app, request
 from flask.views import MethodView
 
-from src.components.classbases.dictbase import DictBase
-from src.logit import pv, po, pe
 from src.app.dictapp import DictApp
 from src.app_factory import get_dict_app
 

@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 """ Reusable SocketIO Service for Flask Backend.
 
 This module implements a modular SocketIOService class that encapsulates all
@@ -76,9 +75,6 @@ class SocketIOService:
         _ = self.socketio.on('join_room')(self.handle_join_room)
         _ = self.socketio.on('leave_room')(self.handle_leave_room)
 
-    # --------------------------
-    # Core Connection Handlers (Public API)
-    # --------------------------
     def handle_connect(self) -> None:
         """ Handle new client connection.
 
@@ -139,9 +135,6 @@ class SocketIOService:
         else:
             print(f"❌ Unauthenticated client disconnected - Session ID: {sid}")
 
-    # --------------------------
-    # Authentication Handlers (Public API)
-    # --------------------------
     def handle_user_auth(self, data: dict[str, object]) -> None:
         """ Authenticate client and bind to a user ID.
 
