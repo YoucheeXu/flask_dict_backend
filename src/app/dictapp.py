@@ -329,7 +329,7 @@ class DictApp:
         self._dictlogger.info(f"activate agent: {agent_cfg}")
 
     def _record2file(self, file_: str, something: str):
-        with open(file_, "w", encoding="utf-8") as f:
+        with open(file_, "a", encoding="utf-8") as f:
             _ = f.write(something)
 
     def query_wordlike(self, dict_id: int, word: str, limit: int):
@@ -386,7 +386,7 @@ class DictApp:
             dict_url = f"there is no {word} in {dictbase.name}."
 
         if ret_dict < 0:
-            self._record2file(self._missdict_file, dict_url)
+            self._record2file(self._missdict_file, dict_url + "\n")
 
         if ret_dict <= 0:
             dicterr_file = os.path.join(dictbase.tempdir, word + "-error.html")
@@ -410,8 +410,7 @@ class DictApp:
 
         # audioname = self._audiobase.name
         if ret_audio < 0:
-            self._record2file(self._missaudio_file,
-                "Audio of " + word + ": " + audio_url + "\n")
+            self._record2file(self._missaudio_file, audio_url + "\n")
             self._dictlogger.info(audio_url)
         elif ret_audio == 0:
             if self._audiobase.download is not None:
