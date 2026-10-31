@@ -10,6 +10,13 @@ from src.app.dictapp import DictApp
 from src.app_factory import get_dict_app
 
 
+def _get_dictapp(static_folder: str) -> DictApp:
+    """进程级单例，构造放在 current_app.extensions 里方便测试隔离"""
+    if "dictapp" not in current_app.extensions:
+        # current_app.extensions["dictapp"] = get_dict_app(current_app.static_folder)
+        current_app.extensions["dictapp"] = get_dict_app(static_folder)
+    return current_app.extensions["dictapp"]
+
 class DictApi(MethodView):
     '''
         RESTful style
@@ -17,7 +24,8 @@ class DictApi(MethodView):
     def __init__(self):
         self._proj_path: str = cast(str, current_app.static_folder)
         # print(f"self._proj_path = {self._proj_path}")
-        self._dictapp: DictApp = get_dict_app(self._proj_path)
+        # self._dictapp: DictApp = get_dict_app(self._proj_path)
+        self._dictapp: DictApp = _get_dictapp(self._proj_path)
         self._dictbase_dict: dict[int, str] = {}
         for key, val in self._dictapp.dictbases.items():
             self._dictbase_dict[key] = val.name
