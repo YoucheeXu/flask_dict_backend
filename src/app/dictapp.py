@@ -16,10 +16,10 @@ from src.components.auidoarchive import AuidoArchive
 from src.components.classbases.dictbase import DictBase
 from src.components.gdictbase import GDictBase
 from src.components.mdictbase import MDictBase
-from src.components.sdictbase import SDictBase
+from src.components.sdictbase import SDictBase, WordInfoDict
 from src.components.usrprogress import UsrProgress, WorldProgressTuple
 from src.components.worddict import WordDict
-from src.logit import po
+from src.logit import po, pv
 from src.utilities.download_queue import (
     DownloadCallback,
     DownloadCallbackKwargs,
@@ -346,8 +346,11 @@ class DictApp:
 
         word_dict: dict[str, str] = {}
         for wd in word_list:
-            _, dict_tuple = dictbase.query_word(wd)
-            word_dict[wd] = dict_tuple[2].replace('<br>\n', '; ')
+            _, dict_str = dictbase.query_word(wd)
+            dict_dict = cast(WordInfoDict, json.loads(dict_str))
+            meaning = dict_dict['Meaning'].replace("<br>\n", " ").replace("<br>", " ").replace("\n", " ")
+            word_dict[wd] = meaning
+            pv(meaning)
 
         return word_dict
 
@@ -365,7 +368,7 @@ class DictApp:
         self._dictlogger.info(f"query word '{word}' in dict '{dictbase.name}'")
 
         ret_dict, dict_url = dictbase.query_word(word)
-        # print(f"ret_dict: {ret_dict}, dict: {dict}")
+        print(f"ret_dict: {ret_dict}, dict: {dict_url}")
         ret_audio, audio_url = self._audiobase.query_word(word)
 
         if ret_dict == 0:

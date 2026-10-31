@@ -2,6 +2,7 @@
 import sqlite3
 import threading
 from collections.abc import Mapping, Sequence
+from typing import cast
 
 # Preserve original type alias
 SQLParameters = Sequence[object] | Mapping[str, object] | None
@@ -37,6 +38,7 @@ class SQLite:
             )
             # Enable foreign keys (best practice)
             _ = _local.conn.execute("PRAGMA foreign_keys = ON")
+            _local.conn.row_factory = sqlite3.Row
 
         return _local.conn
 
@@ -139,7 +141,7 @@ class SQLite:
         conn = self._get_thread_conn()
         conn.commit()
 
-    def get(self, query: str) -> tuple[object, ...] | None:
+    def get(self, query: str):
         """ Get first row of query result"""
         if not self._sqlfile:
             raise RuntimeError("Call open() first to initialize connection!")
@@ -147,7 +149,7 @@ class SQLite:
         try:
             cursor = self._get_thread_cursor()
             _ = cursor.execute(query)
-            return cursor.fetchone()
+            return cast(sqlite3.Row, cursor.fetchone())
         except sqlite3.Error as e:
             print(f"fail to get with {query}, because of {e!s}")
             return None

@@ -1,17 +1,18 @@
 #!/usr/bin/python3
+import json
 from collections.abc import Generator
-from typing import NamedTuple, cast, override
+from typing import TypedDict, cast, override
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.sqlite import SQLite
+from src.logit import pv
 
 
-class WordTuple(NamedTuple):
-    word: str
-    symbol: str
-    meaning: str
-    sentences: str | None
-
+class WordInfoDict(TypedDict):
+    Word: str
+    Symbol: str
+    Meaning: str
+    Sentences: str | None
 
 class SDictBase(DictBase):
     '''
@@ -27,7 +28,9 @@ class SDictBase(DictBase):
         # self._name = name
         # self._src = src
         _ = super().open(name, src)
-        return self._dictbase.open(self._src)
+        ret = self._dictbase.open(self._src)
+        _ = self._dictbase.enable_wal()
+        return ret
 
     @override
     def close(self) -> bool:
@@ -42,7 +45,6 @@ class SDictBase(DictBase):
         # if os.path.isfile(htmlfile):
             # return 1, htmlfile
         query = "select * from Words where word = '" + word + "'"
-        row = cast(WordTuple | None, self._dictbase.get(query))
         # print(f"{word} = {row}")
         # word = row[0]
         # phonetic = row[1]
@@ -61,8 +63,10 @@ class SDictBase(DictBase):
         # """
         # with open(htmlfile, 'w', encoding="UTF-8") as f:
             # _ = f.write(html)
+        row = self._dictbase.get(query)          # sqlite3.Row | None
         if row:
-            return 1, row
+            pv(dict(row))
+            return 1, json.dumps(dict(row), ensure_ascii=False)
         else:
             return -1, f"now {word} in {self._name}"
 

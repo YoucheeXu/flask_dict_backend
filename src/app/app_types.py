@@ -82,6 +82,14 @@ class SvrCfgDict(TypedDict):
 DEFAULT_SVR_CFG: SvrCfgDict = {
     "DictBases": [
 		{
+			"Id": 0,
+			"Name": "D15000",
+			"Type": "ENG2CHS",
+			"Desc": "15000",
+			"Src": "dicts/15000/15000.dict",
+			"Format": "SQLite"
+		},
+		{
 			"Id": 1,
 			"Name": "Google",
 			"Type": "ENG2CHS",
