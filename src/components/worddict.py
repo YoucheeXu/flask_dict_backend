@@ -27,26 +27,27 @@ class WordDict:
     def open(self, dictname: str, dictsrc: str) -> tuple[int, str]:
         self._dictname = dictname
         self._dictsrc = dictsrc
+        create_table = False
         if os.path.isfile(self._dictsrc):
-            return self._database.open(self._dictsrc)
-        else:
-            ret, reason = self._database.open(self._dictsrc)
-            if ret:
-                ret2 = self._database.execute1(
-                    """CREATE TABLE [Words](
-                        [Word] CHAR(255) CONSTRAINT [PrimaryKey] PRIMARY KEY,
-                        [USSymbol] CHAR(255),
-                        [UKSymbol] CHAR(255),
-                        [Level] CHAR(255),
-                        [Stars] TINYINT
-                    )"""
-                )
-                if ret2 == -1:
-                    return True, f"OK to new {self._dictsrc}"
-                else:
-                    return False, f"Fail to new {self._dictsrc}"
+            create_table = False
+        ret, reason = self._database.open(self._dictsrc)
+
+        if create_table and ret == 1:
+            ret2 = self._database.execute1(
+                """CREATE TABLE [Words](
+                    [Word] CHAR(255) CONSTRAINT [PrimaryKey] PRIMARY KEY,
+                    [USSymbol] CHAR(255),
+                    [UKSymbol] CHAR(255),
+                    [Level] CHAR(255),
+                    [Stars] TINYINT
+                )"""
+            )
+            if ret2 == -1:
+                ret, reason = True, f"OK to new {self._dictsrc}"
             else:
-                return ret, reason
+                ret, reason = False, f"Fail to new {self._dictsrc}"
+
+        return ret, reason
 
     def has_word(self, word: str) -> bool:
         """Checks if a specific word exists in the SQLite Words table.
@@ -233,8 +234,8 @@ class WordDict:
         if ret:
             # print(f"ret = {ret}")
             # anything = ret[item]
-            anything = ret[0]
-            return cast(str | int, anything)
+            anything = cast(str | int, ret[0])
+            return anything
         return None
 
     def get_level(self, word: str):
