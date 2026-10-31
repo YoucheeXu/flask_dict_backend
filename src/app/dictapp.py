@@ -345,9 +345,9 @@ class DictApp:
         print(f'word list = {word_list}')
 
         word_dict: dict[str, str] = {}
-        for word in word_list:
-            ret_dict, dict_tuple = dictbase.query_word(word)
-            word_dict[word] = dict_tuple[2].replace('<br>\n', '; ')
+        for wd in word_list:
+            _, dict_tuple = dictbase.query_word(wd)
+            word_dict[wd] = dict_tuple[2].replace('<br>\n', '; ')
 
         return word_dict
 
@@ -519,8 +519,8 @@ class DictApp:
 
             self._curlearn_pos += 1
 
-            self._recitelogger.info((f"learnWord: {self._curword}, "
-                f"familiar: {familiar:.1f}, curLearnPos = {self._curlearn_pos}"))
+            self._recitelogger.info(f"learnWord: {self._curword}, " +
+                f"familiar: {familiar:.1f}, curLearnPos = {self._curlearn_pos}")
 
         return score, self._curword
 
@@ -544,7 +544,7 @@ class DictApp:
                 # self._LearnLst.append(word)
                 # self._num_learn.set("%d words to Learn!" %(len(self._learn_list)))
                 self._recitelogger.info("ErrCount: %d", self._err_count)
-                self._recitelogger.info("Right word: %s, Wrong word: %s." %(word, input_word))
+                self._recitelogger.info(f"Right word: {word}, Wrong word: {input_word}.")
                 if self._err_count == 3:
                     self._curtest_pos -= 1
                     self._err_count -= 1
@@ -570,7 +570,7 @@ class DictApp:
                 return score, ActEnum.TEST_NEXT
             else: 
                 self._cur_count += 1
-                self._recitelogger.info("curCount: %d" %(self._cur_count))
+                self._recitelogger.info(f"curCount: {self._cur_count}")
                 # self._go_test_mode()
                 return score, ActEnum.TEST_MODE
 
@@ -625,10 +625,10 @@ class DictApp:
 
         self._curtest_pos += 1
 
-        self._recitelogger.info((f"testWord: {self._curword}, "
-            f"familiar: {self._word_dict[self._curword]["familiar"]:.1f}, "
+        self._recitelogger.info(f"testWord: {self._curword}, " +
+            f"familiar: {self._word_dict[self._curword]["familiar"]:.1f}, " +
             f"curTestPos: {self._curtest_pos}"
-        ))
+        )
 
         return self._curword, lastword
 
@@ -661,28 +661,26 @@ class DictApp:
 
         if self._mode == "Study Mode":
             self._curlearn_pos -= 1
-            if self._curlearn_pos <= 0:
-                self._curlearn_pos = 0
+            self._curlearn_pos = max(0, self._curlearn_pos)
             word = self._curlearn_list[self._curlearn_pos]
 
             if self._curlearn_pos < len(self._curlearn_list):
                 return ActEnum.STUDY_NEXT
             else: 
                 self._cur_count = 1
-                self._recitelogger.info("curCount: %d" %(self._cur_count))
+                self._recitelogger.info(f"curCount: {self._cur_count}")
                 self._curtest_list = self._curlearn_list[:]
                 return ActEnum.TEST_MODE
         else:
             self._curtest_pos -= 1
-            if self._curtest_pos <= 0:
-                self._curtest_pos = 0
+            self._curtest_pos = max(0, self._curtest_pos)
             word = self._curtest_list[self._curtest_pos]
 
             if self._curtest_pos < len(self._curtest_list):
                 return ActEnum.TEST_NEXT
             else: 
                 self._cur_count += 1
-                self._recitelogger.info("curCount: %d" %(self._cur_count))
+                self._recitelogger.info(f"curCount: {self._cur_count}")
                 return ActEnum.TEST_MODE
 
     def forget(self) -> ActEnum:
@@ -698,8 +696,7 @@ class DictApp:
 
         if self._mode == "Test Mode":
             self._curtest_pos -= 1
-            if self._curtest_pos <= 0:
-                self._curtest_pos = 0
+            self._curtest_pos = max(0, self._curtest_pos)
             word = self._curtest_list[self._curtest_pos]
 
             while word in self._curtest_list:
@@ -717,7 +714,7 @@ class DictApp:
                 return ActEnum.TEST_NEXT
             else: 
                 self._cur_count += 1
-                self._recitelogger.info("curCount: %d" %(self._cur_count))
+                self._recitelogger.info(f"curCount: {self._cur_count}")
                 return ActEnum.TEST_MODE
 
         #self._WordsDict.pop(word)
@@ -813,10 +810,7 @@ class DictApp:
                 _ = self._usrprogress.open(progressfile, level)
                 num_unrecited_word1 = self._usrprogress.ge_inprogresscount(level)
                 num_unrecited_word2 = self._usrprogress.get_newcount(level)
-                if (num_unrecited_word1 + num_unrecited_word2 == 0):
-                    return True
-                else:
-                    return False
+                return num_unrecited_word1 + num_unrecited_word2 == 0
 
         return -1, "Usr doesn't exist!"
 
@@ -895,8 +889,8 @@ class DictApp:
             new_word_list.remove(word)
 
         self._learn_list.extend(forgotten_words_list)
-        self._recitelogger.info("length of forgotten words: %d." %(len(forgotten_words_list)))
-        self._recitelogger.info("length of new words: %d." %(len(new_word_list)))
+        self._recitelogger.info(f"length of forgotten words: {len(forgotten_words_list)}.")
+        self._recitelogger.info(f"length of new words: {len(new_word_list)}.")
 
         # get old words
         timeday_list = self._timeday_list[::-1]        # reverse list
@@ -962,7 +956,7 @@ class DictApp:
         self._test_list.extend(self._learn_list)
 
         words_len = self._total_limit - len(self._test_list)
-        self._recitelogger.info("left %d words for new" %words_len)
+        self._recitelogger.info(f"left {words_len} words for new")
 
         if words_len > 0: 
             self._test_list.extend(new_word_list[:words_len - 1])
@@ -974,14 +968,14 @@ class DictApp:
 
         random.shuffle(self._learn_list)
 
-        self._recitelogger.info("len of all Test Words: %d." %(len(self._test_list)))
+        self._recitelogger.info(f"len of all Test Words: {len(self._test_list)}.")
         self._test_list = list(set(self._test_list))    # remove duplicate item 
-        self._recitelogger.info("len of no repeat all TestWordsList: %d." %(len(self._test_list)))
+        self._recitelogger.info(f"len of no repeat all TestWordsList: {len(self._test_list)}.")
         # self._logger2.info("WordsDict = " + str(self.__WordsDict))
         # self._logger2.info("len of WordsDict: %d: " %(len(self.__WordsDict)))
         # self._logger2.info(self.__LearnLst)
         # self._logger2.info("LearnLst = " + "".join(list(str(self.__LearnLst))))
-        self._recitelogger.info("len of LearnList: %d." %(len(self._learn_list)))
+        self._recitelogger.info(f"len of LearnList: {len(self._learn_list)}.")
 
     def save_progress(self):
         len_worddict1 = len(self._word_dict)
@@ -1016,10 +1010,8 @@ class DictApp:
         for word, wordprogress in self._word_dict.items():
             familiar = wordprogress["familiar"] + 1
 
-            if familiar > 10:
-                familiar = 10
-            if familiar < -10:
-                familiar = -10
+            familiar = min(familiar, 10)
+            familiar = max(familiar, -10)
 
             familiar = int(familiar)
 
@@ -1071,7 +1063,7 @@ class DictApp:
     def close(self):
         self._download_queue.wait_for_completion()
 
-        for _, dictbase_ in self._dictbase_map.items():
+        for dictbase_ in self._dictbase_map.values():
             srcfile = dictbase_.src
             print("Start to close " + srcfile)
             ret = dictbase_.close()
