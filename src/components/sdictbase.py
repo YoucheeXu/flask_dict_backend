@@ -44,6 +44,7 @@ class SDictBase(DictBase):
         # htmlfile = os.path.join(self._tempdir, word + ".html")
         # if os.path.isfile(htmlfile):
             # return 1, htmlfile
+        word = word.replace("'", "''")
         query = "select * from Words where word = '" + word + "'"
         # print(f"{word} = {row}")
         # word = row[0]
