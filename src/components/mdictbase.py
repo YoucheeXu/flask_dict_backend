@@ -5,7 +5,8 @@ haha
 """
 import os
 import re
-from typing import override
+from html.parser import HTMLParser
+from typing import cast, override
 
 from src.components.classbases.dictbase import DictBase
 from src.components.classbases.mdpackage import MdPackage
@@ -20,6 +21,21 @@ from src.components.classbases.mdpackage import MdPackage
     # text = text.replace(b'&amp', b'&')
     # return text
 
+class LinkFinder(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self._links: list[str] = []
+
+    @property
+    def links(self):
+        return self._links
+
+    @override
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        for k, v in attrs:
+            if k == "href" and v:
+                self._links.append(v)
+        # return super().handle_starttag(tag, attrs)
 
 class MDictBase(DictBase):
     def __init__(self, password: tuple[bytes, str] | None = None):
@@ -51,27 +67,35 @@ class MDictBase(DictBase):
         if os.path.isfile(htmlfile):
             return 1, htmlfile
         if self._mdx.has_record(word):
-            ret, data = self._mdx.read_record(word)
+            ret, mdxdata = cast(tuple[int, str], self._mdx.read_record(word))
 
             if ret == 1:
-                html = "<!DOCTYPE html><html><body>" + data + "</body></html>"
+                html = "<!DOCTYPE html><html><body>" + mdxdata + "</body></html>"
                 with open(htmlfile, "w", encoding="utf-8") as f:
                     _ = f.write(html)
             else:
-                return ret, f"Fail to read {word} in {self._name}.mdx, because {data}"
+                return ret, f"Fail to read {word} in {self._name}.mdx, because {mdxdata}"
 
             for mdd in self._mdd_list:
-                pattern = "href='(.+?)'"
-                matches = re.findall(pattern, data)
+                # pattern = "href='(.+?)'"
+                # matches = re.findall(pattern, data)
+                p = LinkFinder()
+                p.feed(mdxdata)
+                matches = p.links
+                # pv(matches)
                 for match in matches:
-                    src = f"\\{match[0]}"
-                    print(f"src = {src}")
+                    # src = f"\\{match[0]}"
+                    srcfile = os.path.join(self._tempdir, match)
+                    # pv(srcfile)
+                    if os.path.isfile(srcfile):
+                        continue
+                    src = f"\\{match}"
                     if mdd.has_record(src):
-                        ret, data = mdd.read_record(src)
+                        ret, mdddata = cast(tuple[int, bytes], mdd.read_record(src))
                         if ret == 1:
-                            srcfile = os.path.join(self._tempdir, src)
-                            with open(srcfile, "w", encoding="utf-8") as f:
-                                _ = f.write(data)
+                            # with open(srcfile, "w", encoding="utf-8") as f:
+                            with open(srcfile, "wb") as f:
+                                _ = f.write(mdddata)
                         else:
                             return -1, f"Fail to read {src} in {self._name}.mdd"
                     else:
