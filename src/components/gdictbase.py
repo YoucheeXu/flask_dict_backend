@@ -144,156 +144,187 @@ class GDictBase(DictBase):
 
         return ""
 
-    def _process_primary(self, tabalign: str, dict_primary: Any) -> str:
-        primary = dict_primary
-        xml: str = ""
+    def _process_primaries(self, primaries: list[dict[str, Any]] | str, level: int) -> str:
+        htmls: str = ""
+        html: str = ""
+        # is_meaning = False
+        # tabalign = "\t" * level
+        if isinstance(primaries, list):
+            for primary in primaries:
+                html = self._process_primary(primary, level)
+                # console.log("html1: " + html + "")
+                # if html[0] == "<":
+                    # htmls += "\n" + tabalign
+                    # htmls += "\n"
+                htmls += html
+        else:
+            html = self._process_primaries(json.loads(primaries, strict=False), level + 1)
+            # console.log("html3: " + html + "")
+            htmls += html
+        return htmls
+
+    def _process_primary(self, primary: dict[str, Any], level: int) -> str:
+        htmls: str = ""
+        # html: str = ""
+        # is_meaning = False
+        tabalign = "\t" * level
+        # let hasChild = false
+        # let hastyp = false
+        primary_type = ""
+        # if "type" in primary:
+        #     # hastyp = True
+        #     primary_type = cast(str, primary["type"])
+        primary_type = cast(str, primary.pop("type", ""))
+        if primary_type == "headword":
+            htmls = f"{tabalign}<div class='headword'>"
+        for item in primary:
+            match item:
+                case "terms":
+                    htmls += self._process_terms(primary["terms"], primary_type, level + 1)
+                case "entries":
+                    htmls += self._process_entries(primary["entries"], level + 1)
+                case _:
+                    raise KeyError(f"unkown item: {item} in primary")
+        if primary_type == "headword":
+            htmls += f"\n{tabalign}</div>"
+        return htmls
+
+    def _process_entries(self, entries: list[dict[str, Any]], level: int) -> str:
+        htmls: str = ""
+        html: str = ""
+        # is_meaning = False
+        # tabalign = "\t" * level
+        for entry in entries:
+            html = self._process_entry(entry, level)
+            # console.log("html1: " + html + "")
+            if html[0] == "<":
+                # htmls += "\n" + tabalign
+                htmls += "\n"
+            htmls += html
+        return htmls
+
+    def _process_entry(self, entry: dict[str, Any], level: int):
+        htmls: str = ""
         html: str = ""
         is_meaning = False
-        if isinstance(primary, list):
-            for data in primary:
-                html = self._process_primary(tabalign, data)
-                # console.log("html1: " + html + "")
+        tabalign = "\t" * level
+        # let hasChild = false
+        # let hastyp = false
+        if "type" in entry:
+            # hastyp = True
+            entry_type = cast(str, entry["type"])
+            if entry_type == "container":
+                # print(primary)
+                htmls += f'\n{tabalign}<div class="wordtyp">{entry["labels"][0]["text"]}: </div>'
+                htmls += f"\n{tabalign}<div class='container1'>"
+            else:
+                if "labels" in entry:
+                    # if(htmls.substr(-1, 1) == ">"){
+                    # htmls += "\n"
+                    # }
+                    htmls += f"\n{tabalign}<div class='{entry_type}'>"
+                    # tabalign += "\t"
+                    htmls += f"\n{tabalign}\t<div class='labels'>{entry['labels'][0]['text']}</div>"
+                    html = self._process_terms(entry["terms"], entry_type, level + 1)
+                    if html[0] == "<":
+                        htmls += "\n" + tabalign
+                    else:
+                        htmls += " "
+                    htmls += html
+                else:
+                    if entry_type == "meaning":
+                        is_meaning = True
+                    if entry_type == "example" and is_meaning:
+                        htmls += "\n"
+                        is_meaning = False
+                    htmls += f"\n{tabalign}<div class='{entry_type}'>"
+                    # tabalign += "\t"
+                    html = self._process_terms(entry["terms"], entry_type, level + 1)
+                    if html[0] == "<":
+                        htmls += "\n" + tabalign
+                    # console.log("html4: " + html + "")
+                    htmls += html
+            if "entries" in entry:
+                html = self._process_entries(entry["entries"], level + 1)
+                # console.log("html: " + html + "")
+                # console.log("htmls: " + htmls + "")
+                # console.log("html2: " + html + "")
                 if html[0] == "<":
-                    xml += "\n" + tabalign
-                xml += html
-        elif isinstance(primary, dict):
-            # let hasChild = false
-            # let hastyp = false
-            if "type" in primary:
-                # hastyp = True
-                if primary["type"] == "container":
-                    # print(primary)
-                    xml += f'{tabalign}<div class = "wordtyp">{primary["labels"][0]["text"]}: </div>\n'
-                    xml += tabalign + "<div class = '" + primary["type"] + "1'>\n"
-                    tabalign += "\t"
-                    entries = primary["entries"]
-                    html = self._process_terms(tabalign, entries[0]["terms"], entries[0]["type"])
-                    if html[0] == "<":
-                        xml += "\n" + tabalign
-                    xml += html
-                else:
-                    if "labels" in primary:
-                        # if(xml.substr(-1, 1) == ">"){
-                        # xml += "\n"
-                        # }
-                        xml += f"{tabalign}<div class = '{primary["type"]}'>"
-                        tabalign += "\t"
-                        xml += f"\n{tabalign}<div class = 'labels'>{primary['labels'][0]['text']}</div>"
-                        html = self._process_terms(tabalign, primary["terms"], primary["type"])
-                        if html[0] == "<":
-                            xml += "\n" + tabalign
-                        xml += html
-                    else:
-                        if primary["type"] == "meaning":
-                            is_meaning = True
-                        if primary["type"] == "example" and is_meaning:
-                            xml += "\n"
-                            is_meaning = False
-                        xml += f"{tabalign}<div class = '{primary["type"]}'>"
-                        tabalign += "\t"
-                        html = self._process_terms(tabalign, primary["terms"], primary["type"])
-                        if html[0] == "<":
-                            xml += "\n" + tabalign
-                        # console.log("html4: " + html + "")
-                        xml += html
-                if "entries" in primary:
-                    html = self._process_primary(tabalign, primary["entries"])
-                    # console.log("html: " + html + "")
-                    # console.log("xml: " + xml + "")
-                    # console.log("html2: " + html + "")
-                    if html[0] == "<":
-                        xml += "\n" + tabalign + "Q: "
-                    xml += html
-                # xml += tabalign + "</div>\n"
-                tabalign = tabalign[0]
-                # console.log(xml.substr(-3, 3))
-                if xml[-3] == ">":
-                    xml += tabalign
-                if xml[-1] == ">":
-                    xml += "\n" + tabalign
-                xml += "</div>\n"
-                # tabalign = tabalign.slice(0, -2)
-        elif isinstance(primary, str):
-            html = self._process_primary(tabalign, json.loads(primary, strict=False))
-            # console.log("html3: " + html + "")
-            xml += html
-        return xml
+                    htmls += "\n" + tabalign + "Q: "
+                htmls += html
+            # htmls += tabalign + "</div>\n"
+            # tabalign = tabalign[0] ?
+            # console.log(htmls.substr(-3, 3))
+            if htmls[-3] == ">":
+                htmls += tabalign
+            if htmls[-1] == ">":
+                htmls += "\n" + tabalign
+            htmls += "</div>"
+            # tabalign = tabalign.slice(0, -2)
+        return htmls
 
-    def _process_terms(self, tabalign: str, dict_terms: Any, typ: str) -> str:
-        terms = dict_terms
-        xml: str = ""
+    def _process_terms(self, terms: list[dict[str, Any]], primary_type: str, level: int):
+        htmls: str = ""
         html: str = ""
-        if isinstance(terms, list):
-            for data in terms:
-                # data = terms[i]
-                html = self._process_terms(tabalign, data, typ)
-                # if(html.slice(0,1) == "<"){
-                # xml += "\n" + tabalign
-                # }
-                xml += html
-        elif isinstance(terms, dict):
-            # let hastyp = false
-            if "type" in terms:
-                # hastyp = True
-                if terms["type"] != "text" or typ == "headword" or typ == "related":
-                    if terms["type"] == "sound":
-                        '''xml += '<div class="'+ terms["type"] + '">'
-                        # xml += terms["text"] +"</div>"
-                        xml += '<embed typ="application/x-shockwave-flash" src="SpeakerApp16.swf"' +
-                            'width="20" height="20" id="movie28564" name="movie28564" bgcolor="#000000"' +
-                            'quality="high" flashlets="sound_name='+ terms["text"] + '"wmode="transparent">'
-                        xml += "</div>"'''
-                        # alert(terms["text"])
-                        xml += self._get_sound(tabalign, terms["text"])
-                    else:
-                        # console.log("P: " + xml)
-                        # if(xml.substr(-1, 1) == ">"){
-                        # xml += "\n" + tabalign
-                        # }
-                        xml += f"\n{tabalign}<div class = '{terms["type"]}'>{terms['text']}</div>"
+        # tabalign = "\t" * level
+        html_list: list[str] = []
+        for term in terms:
+            # data = terms[i]
+            # html = self._process_terms(data, typ, level + 1)
+            html = self._process_term(term, primary_type, level)
+            # if(html.slice(0,1) == "<"){
+            # htmls += "\n" + tabalign
+            # }
+            html_list.append(html)
+        htmls += " ".join(html_list)
+        return htmls
+
+    def _process_term(self, term: dict[str, Any], primary_type: str, level: int):
+        htmls: str = ""
+        tabalign = "\t" * level
+
+        # let hastyp = false
+        if "type" in term:
+            term_type = cast(str, term["type"])
+            # if term_type != "text" or primary_type == "related":
+            if term_type != "text" or primary_type == "headword":
+                if term["type"] == "sound":
+                    htmls += self._get_sound(tabalign, term["text"])
+                elif term_type == "phonetic":
+                    phoetic_type = cast(str, term['labels'][0]['text'])
+                    phoetic_class = "US" if phoetic_type == "KK" else "UK"
+                    htmls += f"\n{tabalign}<div class='{term_type}'>{phoetic_class}: {term['text']}</div>"
                 else:
-                    xml += f"{terms["text"]}"
-        return xml
-
-    '''
-    def process_term(dict_terms: Any) str:
-        terms = dict_terms
-
-        xml = ""
-        for (let i in terms)
-            let data = terms[i]
-            xml += (data["text"])
-        }
-        return xml
-    }
-    '''
+                    # console.log("P: " + htmls)
+                    # if(htmls.substr(-1, 1) == ">"){
+                    # htmls += "\n" + tabalign
+                    # }
+                    htmls += f"\n{tabalign}<div class='{term_type}'>{term['text']}</div>"
+            else:
+                # print(primary_type)
+                # print(terms)
+                if "labels" in term:
+                    htmls += f"\n{tabalign}<div class='labels'></div>"
+                    label_list: list[str] = []
+                    for label in term["labels"]:
+                        # htmls += f"\n{tabalign}<div class='text'>{{{label['text']}}}</div>"
+                        label_list.append(cast(str, label['text']))
+                    labels = ", ".join(label_list)
+                    htmls += f"\n{tabalign}<div class='text'>&lt;{labels}&gt; {term["text"]}</div>"
+                else:
+                    htmls += f"\n{tabalign}<div class='text'>{term["text"]}</div>"
+        return htmls
 
     def _get_sound(self, tabalign: str, url: str) -> str:
         sound = \
             '\n' + \
-            tabalign + \
-            "<div class = 'sound' id = 'Player'>\n" + \
-            tabalign + \
-            '\t' + \
-            "<button class = 'jp-play' id = 'playpause' title = 'Play'></button>\n" + \
-            tabalign + \
-            '\t' + \
-            "<audio id = 'myaudio'>\n" + \
-            tabalign + \
-            '\t' + \
-            '\t' + \
-            '<source src = ' + \
-            url + \
-            " typ= 'audio/mpeg'>\n" + \
-            tabalign + \
-            '\t' + \
-            '\t' + \
-            'Your browser does not support the audio tag.\n' + \
-            tabalign + \
-            '\t' + \
-            '</audio>\n' + \
-            tabalign + \
-            '</div>'
+            tabalign + "<div class='sound' id='Player'>\n" + \
+            tabalign +'\t' + "<button class='jp-play' id='playpause' title='Play'></button>\n" + \
+            tabalign + '\t' + "<audio id='myaudio'>\n" + \
+            tabalign + '\t' + '\t' + '<source src=' + url + " typ='audio/mpeg'>\n" + \
+            tabalign +  '\t' +  '\t' +  'Your browser does not support the audio tag.\n' + \
+            tabalign +  '\t' +  '</audio>\n' + \
+            tabalign +  '</div>'
         return sound
 
     def _parse_json(self, json_str: str, htmlfile: str) -> bool:
@@ -303,24 +334,25 @@ class GDictBase(DictBase):
         # info = str(info).replace(/\\x/g, "\\u00")
         jsonstr = json_str.replace("\\x", "\\u00")
         obj = json.loads(jsonstr, strict = True)
-        tabalign = '\t\t'
-        dictdata = self._process_primary(tabalign, obj["primaries"])
-        # dictdata = unescape(dictdata.replace("\\", "&#"))
-        # dictdat_bytes = dictdata.encode('utf-8', errors='replace')
-        # print(f"dictdata = {dictdata}")
-        # decoded_once  = codecs.decode(dictdata, 'unicode_escape', errors='replace')
-        # dictdata = decoded_once.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
+        level = 2
+        tabalign = '\t' * level
 
         jsname = "google-toggle.js"
         cssname = "google.css"
 
-        css = tabalign + '<link rel="stylesheet" href="./player.css">' + '\n'
-        css += tabalign + f"<link rel='stylesheet' typ='text/css' href='{cssname}'>"
+        html = "<!DOCTYPE html>\n" + \
+            "<html>\n" + \
+            "\t<body>\n" + \
+            tabalign + '<link rel="stylesheet" href="./player.css">\n' + \
+            tabalign + f"<link rel='stylesheet' typ='text/css' href='{cssname}'>\n" + \
+            tabalign + '<script src="./player.js"></script>\n' + \
+            tabalign + f"<script src='{jsname}'></script>\n" + \
+            tabalign + '<div id="toggle_example" align="right">- Hide Examples</div>\n' + \
+            self._process_primaries(obj["primaries"], level) + "\n" + \
+                .replace("<div class='meaning'>", "<div class='webmeaning'>") + "\n" + \
+            "\t</body>\n" + \
+            "</html>"
 
-        js = tabalign + '<script src="./player.js"></script>' + '\n'
-        js += tabalign + f"<script src='{jsname}'></script>"
-        togeg = tabalign + '<div id="toggle_example" align="right">- Hide Examples</div>'
-        html = f"<!DOCTYPE html>\n<html>\n\t<body>\n{css}\n{js}\n{togeg}\n{dictdata}\n\t</body>\n</html>"
         with open(htmlfile, 'w', encoding="UTF-8") as f:
             _ = f.write(html)
         return True
