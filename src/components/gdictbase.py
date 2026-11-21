@@ -349,6 +349,7 @@ class GDictBase(DictBase):
             tabalign + f"<script src='{jsname}'></script>\n" + \
             tabalign + '<div id="toggle_example" align="right">- Hide Examples</div>\n' + \
             self._process_primaries(obj["primaries"], level) + "\n" + \
+            self._process_primaries(obj["webDefinitions"], level) \
                 .replace("<div class='meaning'>", "<div class='webmeaning'>") + "\n" + \
             "\t</body>\n" + \
             "</html>"
