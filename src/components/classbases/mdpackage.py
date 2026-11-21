@@ -33,7 +33,7 @@ class MdPackage:
     ''' read from mdd, mdx
     '''
     def __init__(self, srcfile: str, is_mdd: bool = False, encoding: str = 'UTF-16',
-            passcode: tuple[bytes, str] | None = None):
+            passcode: tuple[bytes, bytes] | None = None):
         self._file_pos: int = 0
 
         self._version: float = 0
@@ -41,7 +41,7 @@ class MdPackage:
 
         self._encrypt: int = 0
 
-        self._stylesheet = {}
+        self._stylesheet: dict[str, tuple[str, str]] = {}
         # def _recordBlockOffset: any
         self._num_format: str = ">I"
         self._width_num: int = 4
@@ -60,7 +60,7 @@ class MdPackage:
         self._srcfile: str = srcfile
         self._is_mdd: bool = is_mdd
         self._encoding: str = encoding.upper()
-        self._passcode: tuple[bytes, str] | None = passcode
+        self._passcode: tuple[bytes, bytes] | None = passcode
 
     def open(self):
         print(f"open {self._srcfile}")
@@ -221,14 +221,14 @@ class MdPackage:
         print(f"ciphertext: {cipher_text}, encrypt_key: {encrypt_key}")
         return s20.encrypt_bytes(cipher_text)
 
-    def _decrypt_regcode_by_deviceid(self, reg_code: bytes, deviceid: str):
+    def _decrypt_regcode_by_deviceid(self, reg_code: bytes, deviceid: bytes):
         deviceid_digest = ripemd128(deviceid)
         temp = b"\x00" * 8
         s20 = Salsa20(deviceid_digest, temp, 8)
         encrypt_key = s20.encrypt_bytes(reg_code)
         return encrypt_key
 
-    def _decrypt_regcode_by_email(self, reg_code: bytes, email: str) -> bytes:
+    def _decrypt_regcode_by_email(self, reg_code: bytes, email: bytes) -> bytes:
         email_digest = ripemd128(email.decode().encode('utf-16-le'))
         temp = b"\x00" * 8
         s20 = Salsa20(email_digest, temp, 8)
@@ -649,7 +649,7 @@ class MdPackage:
 
             assert size_counter == recordblock_size
 
-    def _substitute_stylesheet(self, txt: str):
+    def _substitute_stylesheet(self, txt: str) -> str:
         txt_list: list[str] = re.split(r'`\d+`', txt)
         txt_tag = re.findall(r'`\d+`', txt)
         txt_styled = txt_list[0]
@@ -658,7 +658,7 @@ class MdPackage:
             if p and p[-1] == '\n':
                 txt_styled += style[0] + p.rstrip() + style[1] + '\r\n'
             else:
-                txt_styled += + style[0] + p + style[1]
+                txt_styled += style[0] + p + style[1]
         return txt_styled
 
     def _decompress(self, compr_type: bytes, compr_block: bytes, decompr_size: int) -> bytes:
