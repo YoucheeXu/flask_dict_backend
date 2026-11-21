@@ -82,7 +82,7 @@ class MdPackage:
     def has_record(self, key: str):
         return key in self._key_list
 
-    def read_record(self, key: str) -> tuple[int, str]:
+    def read_record(self, key: str):
         if key in self._key_list:
             record_strt, record_end, compressblock_strt, \
                 compressblk_size, decompress_size = self._record_dict[key]
@@ -108,11 +108,12 @@ class MdPackage:
             assert len(record_block) == decompress_size
 
             record = record_block[record_strt: record_end]
-            # convert to utf-8
-            record = record.decode(self._encoding, errors = 'ignore').strip('\x00')
-            # substitute styles
-            if self._is_substyle and self._stylesheet:
-                record = self._substitute_stylesheet(record)
+            if not self._is_mdd:
+                # convert to utf-8
+                record = record.decode(self._encoding, errors = 'ignore').strip('\x00')
+                # substitute styles
+                if self._is_substyle and self._stylesheet:
+                    record = self._substitute_stylesheet(record)
 
             return 1, record
 
